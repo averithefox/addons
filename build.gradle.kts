@@ -13,7 +13,9 @@ base {
   archivesName = providers.gradleProperty("archives_base_name")
 }
 
-repositories {}
+repositories {
+  maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+}
 
 dependencies {
   // To change the versions see the gradle.properties file
@@ -24,6 +26,8 @@ dependencies {
   // Fabric API. This is technically optional, but you probably want it anyway.
   modImplementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
   modImplementation("net.fabricmc:fabric-language-kotlin:${providers.gradleProperty("fabric_kotlin_version").get()}")
+
+  modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
 }
 
 tasks.processResources {
