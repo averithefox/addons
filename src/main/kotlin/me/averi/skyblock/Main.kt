@@ -3,6 +3,7 @@ package me.averi.skyblock
 import com.google.gson.GsonBuilder
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.serialization.JsonOps
+import me.averi.skyblock.dungeons.DungeonSecretWaypoints
 import me.averi.skyblock.mixin.AbstractContainerScreenAccessor
 import me.averi.skyblock.mixin.KeyMappingAccessor
 import net.fabricmc.api.ClientModInitializer
@@ -26,6 +27,7 @@ object Main : ClientModInitializer {
 
   override fun onInitializeClient() {
     KeyBindingHelper.registerKeyBinding(copyItemStackKey)
+    DungeonSecretWaypoints.init()
 
     ClientTickEvents.END_CLIENT_TICK.register { client ->
       val down = isBindingKeyDown(client, copyItemStackKey)

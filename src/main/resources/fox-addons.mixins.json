@@ -5,6 +5,7 @@
   "client": [
     "AbstractSignEditScreenMixin",
     "AbstractContainerScreenAccessor",
+    "ClientPacketListenerMixin",
     "KeyMappingAccessor"
   ],
   "injectors": {
