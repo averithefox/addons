@@ -3,7 +3,9 @@
   "package": "me.averi.skyblock.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "AbstractSignEditScreenMixin"
+    "AbstractSignEditScreenMixin",
+    "AbstractContainerScreenAccessor",
+    "KeyMappingAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
