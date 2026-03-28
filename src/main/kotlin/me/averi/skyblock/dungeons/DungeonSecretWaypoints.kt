@@ -1,15 +1,20 @@
 package me.averi.skyblock.dungeons
 
-import com.mojang.blaze3d.vertex.BufferBuilder
-import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.platform.DepthTestFunction
+import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.VertexFormat
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.player.LocalPlayer
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.ShapeRenderer
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket
@@ -21,7 +26,6 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.scores.DisplaySlot
 import net.minecraft.world.scores.PlayerScoreEntry
-import org.lwjgl.opengl.GL11
 import kotlin.math.floor
 
 object DungeonSecretWaypoints {
@@ -43,6 +47,27 @@ object DungeonSecretWaypoints {
 
   private val collectedSecrets = linkedSetOf<BlockPos>()
   private var currentRoom: DungeonRoomInstance? = null
+
+  private val secretFilledThroughWallsType: RenderType by lazy {
+    val pipeline = RenderPipelines.register(
+      RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+        .withLocation(ResourceLocation.fromNamespaceAndPath("fox-addons", "pipeline/secret_filled_box"))
+        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .withDepthWrite(false)
+        .build(),
+    )
+    RenderType.create(
+      "fox_secret_filled_box",
+      1536,
+      false,
+      true,
+      pipeline,
+      RenderType.CompositeState.builder()
+        .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
+        .createCompositeState(false),
+    )
+  }
 
   fun init() {
     ClientTickEvents.END_CLIENT_TICK.register(::onClientTick)
@@ -163,59 +188,29 @@ object DungeonSecretWaypoints {
   private fun renderSecrets(context: WorldRenderContext) {
     val room = currentRoom ?: return
     val matrices = context.matrices() ?: return
+    val consumers = context.consumers()
     val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
-    val filledRenderType = RenderType.debugFilledBox()
-    val buffer = Tesselator.getInstance().begin(filledRenderType.mode(), filledRenderType.format())
 
-    GL11.glEnable(GL11.GL_BLEND)
-    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-    GL11.glDisable(GL11.GL_DEPTH_TEST)
-    GL11.glDepthMask(false)
-
-    matrices.pushPose()
+    val renderType = secretFilledThroughWallsType
     for (secret in room.secrets) {
       if (collectedSecrets.contains(secret.worldPos)) continue
-      writeFilledBox(
+      val box = secret.box.move(-cameraPos.x, -cameraPos.y, -cameraPos.z)
+      val buffer = consumers.getBuffer(renderType)
+      ShapeRenderer.addChainedFilledBoxVertices(
         matrices,
         buffer,
-        secret.box.move(-cameraPos.x, -cameraPos.y, -cameraPos.z),
+        box.minX,
+        box.minY,
+        box.minZ,
+        box.maxX,
+        box.maxY,
+        box.maxZ,
         secret.type.red,
         secret.type.green,
         secret.type.blue,
         secret.type.alpha * 0.28f,
       )
     }
-    filledRenderType.draw(buffer.buildOrThrow())
-    matrices.popPose()
-
-    GL11.glDepthMask(true)
-    GL11.glEnable(GL11.GL_DEPTH_TEST)
-    GL11.glDisable(GL11.GL_BLEND)
-  }
-
-  private fun writeFilledBox(
-    matrices: com.mojang.blaze3d.vertex.PoseStack,
-    buffer: BufferBuilder,
-    box: AABB,
-    red: Float,
-    green: Float,
-    blue: Float,
-    alpha: Float,
-  ) {
-    ShapeRenderer.addChainedFilledBoxVertices(
-      matrices,
-      buffer,
-      box.minX,
-      box.minY,
-      box.minZ,
-      box.maxX,
-      box.maxY,
-      box.maxZ,
-      red,
-      green,
-      blue,
-      alpha,
-    )
   }
 
   private fun isInDungeon(level: ClientLevel): Boolean {
