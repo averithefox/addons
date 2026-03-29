@@ -4,9 +4,14 @@ plugins {
   id("net.fabricmc.fabric-loom-remap")
   `maven-publish`
   id("org.jetbrains.kotlin.jvm") version "2.3.20"
+  id("com.github.jmongard.git-semver-plugin") version "0.18.0"
 }
 
-version = providers.gradleProperty("mod_version").get()
+semver {
+  defaultPreRelease = "DEV"
+}
+
+version = semver.version
 group = providers.gradleProperty("maven_group").get()
 
 base {
