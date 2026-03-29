@@ -7,11 +7,7 @@ plugins {
   id("com.github.jmongard.git-semver-plugin") version "0.18.0"
 }
 
-semver {
-  defaultPreRelease = "DEV"
-}
-
-version = semver.version
+version = semver.semVersion.toString()
 group = providers.gradleProperty("maven_group").get()
 
 base {
