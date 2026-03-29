@@ -1,8 +1,15 @@
 package me.averi.skyblock.dungeons
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import net.minecraft.core.BlockPos
 import java.io.InputStreamReader
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.inputStream
+import kotlin.io.path.isRegularFile
 
 enum class SecretType(
   val key: String,
@@ -33,22 +40,117 @@ data class DungeonRoomData(
 )
 
 object DungeonRoomRepository {
-  private val roomsById: Map<String, DungeonRoomData> = loadRooms().flatMap { room ->
-    room.id.map { id -> id to room }
-  }.toMap()
+  private const val BUNDLED_ROOMDATA = "data/fox-addons/dungeons/roomdata.json"
 
-  private val roomsByCore: Map<Int, DungeonRoomData> = loadRooms().flatMap { room ->
-    room.cores.map { core -> core to room }
-  }.toMap()
+  @Volatile
+  private var fileOverride: Path? = null
 
-  fun getRoomById(id: String): DungeonRoomData? = roomsById[id]
+  private var roomsById: Map<String, DungeonRoomData> = emptyMap()
+  private var roomsByCore: Map<Int, DungeonRoomData> = emptyMap()
+  private var roomsList: List<DungeonRoomData> = emptyList()
+
+  init {
+    reload()
+  }
+
+  fun getRoomDataPath(): Path? = fileOverride
+
+  fun setRoomDataPath(path: Path?) {
+    fileOverride = path
+    reload()
+  }
+
+  fun reload() {
+    val rooms = loadRoomsFromActiveSource()
+    roomsList = rooms
+    roomsById = rooms.flatMap { room -> room.id.map { id -> id to room } }.toMap()
+    roomsByCore = rooms.flatMap { room -> room.cores.map { core -> core to room } }.toMap()
+  }
 
   fun getRoomByCore(core: Int): DungeonRoomData? = roomsByCore[core]
 
-  private fun loadRooms(): List<DungeonRoomData> {
-    val resourcePath = "data/fox-addons/dungeons/roomdata.json"
+  fun allRooms(): List<DungeonRoomData> = roomsList
+
+  fun roomNamesSortedDistinct(): List<String> = roomsList.map { it.name }.distinct().sorted()
+
+  fun hasCompleteCores(room: DungeonRoomData): Boolean = room.cores.isNotEmpty()
+
+  fun appendCoreForRoomName(roomName: String, core: Int): AppendCoreResult {
+    val path = fileOverride ?: return AppendCoreResult.NoFileConfigured
+    try {
+      path.toAbsolutePath().parent?.let { parent ->
+        if (!parent.exists()) {
+          Files.createDirectories(parent)
+        }
+      }
+      if (!path.exists() || !path.isRegularFile()) {
+        val bundled =
+          javaClass.classLoader.getResourceAsStream(BUNDLED_ROOMDATA)
+            ?: return AppendCoreResult.IoError("Missing bundled $BUNDLED_ROOMDATA")
+        bundled.use { input ->
+          Files.copy(input, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+      }
+
+      val text = Files.readString(path, Charsets.UTF_8)
+      val root = JsonParser.parseString(text).asJsonArray
+      var matchedObjects = 0
+      var addedToAny = false
+
+      for (element in root) {
+        val obj = element.asJsonObject
+        if (obj.get("name")?.asString != roomName) {
+          continue
+        }
+        matchedObjects++
+        var cores = obj.getAsJsonArray("cores")
+        if (cores == null) {
+          cores = JsonArray()
+          obj.add("cores", cores)
+        }
+        if (cores.any { it.isJsonPrimitive && it.asInt == core }) {
+          continue
+        }
+        cores.add(core)
+        addedToAny = true
+      }
+
+      when {
+        matchedObjects == 0 -> return AppendCoreResult.RoomNameNotFound(roomName)
+        !addedToAny -> return AppendCoreResult.CoreAlreadyPresent(roomName, core)
+        else -> {
+          val gson = GsonBuilder().disableHtmlEscaping().create()
+          Files.writeString(path, gson.toJson(root), Charsets.UTF_8)
+          reload()
+          return AppendCoreResult.Ok(matchedObjects)
+        }
+      }
+    } catch (e: Exception) {
+      return AppendCoreResult.IoError(e.message ?: e.toString())
+    }
+  }
+
+  sealed class AppendCoreResult {
+    data class Ok(val roomsUpdated: Int) : AppendCoreResult()
+
+    data class CoreAlreadyPresent(val roomName: String, val core: Int) : AppendCoreResult()
+
+    data class RoomNameNotFound(val roomName: String) : AppendCoreResult()
+
+    data object NoFileConfigured : AppendCoreResult()
+
+    data class IoError(val message: String) : AppendCoreResult()
+  }
+
+  private fun loadRoomsFromActiveSource(): List<DungeonRoomData> {
+    val path = fileOverride
     val stream =
-      javaClass.classLoader.getResourceAsStream(resourcePath) ?: error("Missing dungeon room resource: $resourcePath")
+      if (path != null && path.exists() && path.isRegularFile()) {
+        path.inputStream()
+      } else {
+        javaClass.classLoader.getResourceAsStream(BUNDLED_ROOMDATA)
+          ?: error("Missing dungeon room resource: $BUNDLED_ROOMDATA")
+      }
 
     InputStreamReader(stream, Charsets.UTF_8).use { reader ->
       val root = JsonParser.parseReader(reader).asJsonArray

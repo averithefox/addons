@@ -1,12 +1,16 @@
 package me.averi.skyblock.dungeons
 
-import com.mojang.blaze3d.platform.DepthTestFunction
 import com.mojang.blaze3d.pipeline.RenderPipeline
+import com.mojang.blaze3d.platform.DepthTestFunction
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
+import me.averi.skyblock.FoxAddons.isDebug
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
+import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.player.LocalPlayer
@@ -14,10 +18,13 @@ import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.ShapeRenderer
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.core.BlockPos
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.level.block.Blocks
@@ -26,9 +33,14 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.scores.DisplaySlot
 import net.minecraft.world.scores.PlayerScoreEntry
+import org.slf4j.LoggerFactory
 import kotlin.math.floor
 
 object DungeonSecretWaypoints {
+  private const val DEBUG_LOG_PREFIX = "[FA]"
+
+  private val logger = LoggerFactory.getLogger(DungeonSecretWaypoints::class.java)
+
   private const val DUNGEON_MIN = 0
   private const val DUNGEON_MAX = 5
   private const val RESCAN_INTERVAL_TICKS = 10
@@ -36,26 +48,27 @@ object DungeonSecretWaypoints {
   private const val MAX_BAT_MATCH_DISTANCE_SQ = 144.0
   private const val MAX_SKULL_MATCH_DISTANCE_SQ = 16.0
 
-  private val blacklistedLegacyIds = setOf(54, 101)
+  private const val BOX_FILL_ALPHA_SCALE = 0.52f
 
   private var lastWorldId: Int = 0
   private var wasInDungeon = false
   private var useKeyWasDown = false
   private var tickCounter = 0
   private var lastScannedComponent: RoomComponent? = null
-  private var lastSidebarRoomId: String? = null
 
   private val collectedSecrets = linkedSetOf<BlockPos>()
   private var currentRoom: DungeonRoomInstance? = null
+  private var lastAnnouncedRoomKey: String? = null
+
+  private var lastScanFailureSignature: String? = null
+  private var lastOutOfGridDebugTick: Int = -10_000
 
   private val secretFilledThroughWallsType: RenderType by lazy {
     val pipeline = RenderPipelines.register(
       RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
         .withLocation(ResourceLocation.fromNamespaceAndPath("fox-addons", "pipeline/secret_filled_box"))
         .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
-        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
-        .withDepthWrite(false)
-        .build(),
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).build(),
     )
     RenderType.create(
       "fox_secret_filled_box",
@@ -63,8 +76,7 @@ object DungeonSecretWaypoints {
       false,
       true,
       pipeline,
-      RenderType.CompositeState.builder()
-        .setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
+      RenderType.CompositeState.builder().setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
         .createCompositeState(false),
     )
   }
@@ -72,20 +84,49 @@ object DungeonSecretWaypoints {
   fun init() {
     ClientTickEvents.END_CLIENT_TICK.register(::onClientTick)
     WorldRenderEvents.BEFORE_DEBUG_RENDER.register(::renderSecrets)
+    registerDebugHud()
+  }
+
+  private fun registerDebugHud() {
+    HudElementRegistry.attachElementBefore(
+      VanillaHudElements.CHAT,
+      ResourceLocation.fromNamespaceAndPath("fox-addons", "hud/debug_room_name"),
+    ) { graphics, _ ->
+      debugHudRoomLine()?.let { line ->
+        val client = Minecraft.getInstance()
+        graphics.drawString(client.font, line, 4, 4, -1, true)
+      }
+    }
+  }
+
+  fun computeStandingStartCoreHash(): Int? {
+    val client = Minecraft.getInstance()
+    val level = client.level ?: return null
+    val player = client.player ?: return null
+    val component = RoomComponent.fromWorld(player.x, player.z) ?: return null
+    return buildRoomCore(level, component.centerX, component.centerZ).hash
+  }
+
+  private fun debugHudRoomLine(): Component? {
+    if (!isDebug) return null
+    val client = Minecraft.getInstance()
+    val level = client.level ?: return null
+    if (!isInDungeon(level)) return null
+    val room = currentRoom ?: return Component.literal("Room: ")
+      .append(Component.literal("—").withStyle(ChatFormatting.DARK_GRAY))
+    val complete = DungeonRoomRepository.hasCompleteCores(room.data)
+    val nameColor = if (complete) ChatFormatting.GREEN else ChatFormatting.RED
+    return Component.literal("Room: ").append(Component.literal(room.data.name).withStyle(nameColor))
   }
 
   fun handleItemPickup(packet: ClientboundTakeItemEntityPacket) {
     val client = Minecraft.getInstance()
     val player = client.player ?: return
     if (packet.playerId != player.id) return
-
     val level = client.level ?: return
     val entity = level.getEntity(packet.itemId) as? ItemEntity ?: return
     markNearestSecret(
-      types = setOf(SecretType.ITEM),
-      origin = entity.position(),
-      maxDistanceSq = MAX_ITEM_MATCH_DISTANCE_SQ,
-      fallback = entity.blockPosition(),
+      types = setOf(SecretType.ITEM), origin = entity.position(), maxDistanceSq = MAX_ITEM_MATCH_DISTANCE_SQ
     )
   }
 
@@ -96,7 +137,6 @@ object DungeonSecretWaypoints {
       types = setOf(SecretType.BAT),
       origin = Vec3(packet.x, packet.y, packet.z),
       maxDistanceSq = MAX_BAT_MATCH_DISTANCE_SQ,
-      fallback = null,
     )
   }
 
@@ -119,6 +159,7 @@ object DungeonSecretWaypoints {
       wasInDungeon = false
       currentRoom = null
       lastScannedComponent = null
+      lastAnnouncedRoomKey = null
       handleUseKey(client, player, level)
       return
     }
@@ -133,17 +174,84 @@ object DungeonSecretWaypoints {
     if (component == null) {
       currentRoom = null
       lastScannedComponent = null
+      if (tickCounter - lastOutOfGridDebugTick >= 80) {
+        lastOutOfGridDebugTick = tickCounter
+        announceDebugOutOfGrid(client, player)
+      }
       handleUseKey(client, player, level)
       return
     }
 
     val shouldRescan = component != lastScannedComponent || tickCounter % RESCAN_INTERVAL_TICKS == 0
     if (shouldRescan) {
-      currentRoom = scanCurrentRoom(level, component)
+      when (val outcome = scanCurrentRoom(level, component)) {
+        is RoomScanOutcome.Ok -> {
+          lastScanFailureSignature = null
+          val roomKey = roomDebugKey(outcome.room)
+          if (roomKey != lastAnnouncedRoomKey) {
+            lastAnnouncedRoomKey = roomKey
+            announceSecretCounts(client, outcome.room)
+          }
+          currentRoom = outcome.room
+        }
+
+        is RoomScanOutcome.Failed -> {
+          currentRoom = null
+          maybeAnnounceScanFailure(client, component, outcome)
+        }
+      }
       lastScannedComponent = component
     }
 
     handleUseKey(client, player, level)
+  }
+
+  private fun roomDebugKey(room: DungeonRoomInstance): String =
+    "${room.data.name}|${room.cornerX}|${room.cornerZ}|${room.rotation}"
+
+  private fun emitDungeonDebug(client: Minecraft, plainBody: String, chatLine: MutableComponent) {
+    logger.info("$DEBUG_LOG_PREFIX $plainBody")
+    if (isDebug) client.gui.chat.addMessage(chatLine)
+  }
+
+  private fun announceSecretCounts(client: Minecraft, room: DungeonRoomInstance) {
+    val counts = room.secrets.groupingBy { it.type }.eachCount()
+    val compact = SecretType.entries.joinToString(" ") { type ->
+      val abbrev = when (type) {
+        SecretType.CHEST -> "c"
+        SecretType.ITEM -> "i"
+        SecretType.WITHER -> "w"
+        SecretType.BAT -> "b"
+        SecretType.REDSTONE_KEY -> "r"
+      }
+      "$abbrev=${counts[type] ?: 0}"
+    }
+    val plain = "${room.data.name} $compact Σ${room.secrets.size}"
+    val chat: MutableComponent = Component.literal("$DEBUG_LOG_PREFIX ").withStyle(ChatFormatting.GOLD)
+      .append(Component.literal(room.data.name).withStyle(ChatFormatting.AQUA))
+      .append(Component.literal(" $compact ").withStyle(ChatFormatting.GRAY))
+      .append(Component.literal("Σ${room.secrets.size}").withStyle(ChatFormatting.DARK_GRAY))
+    emitDungeonDebug(client, plain, chat)
+  }
+
+  private fun announceDebugOutOfGrid(client: Minecraft, player: LocalPlayer) {
+    val pos = player.blockPosition()
+    val plain = "off dungeon grid ${pos.x} ${pos.y} ${pos.z}"
+    val chat: MutableComponent = Component.literal("$DEBUG_LOG_PREFIX ").withStyle(ChatFormatting.GOLD)
+      .append(Component.literal("off dungeon grid ").withStyle(ChatFormatting.RED))
+      .append(Component.literal("${pos.x} ${pos.y} ${pos.z}").withStyle(ChatFormatting.WHITE))
+    emitDungeonDebug(client, plain, chat)
+  }
+
+  private fun maybeAnnounceScanFailure(client: Minecraft, component: RoomComponent, failed: RoomScanOutcome.Failed) {
+    val sig = "${component.arrayX},${component.arrayZ}|${failed.stage}|${failed.detail}"
+    if (sig == lastScanFailureSignature) return
+    lastScanFailureSignature = sig
+    val plain = "${failed.stage}: ${failed.detail}"
+    val chat: MutableComponent = Component.literal("$DEBUG_LOG_PREFIX ").withStyle(ChatFormatting.GOLD)
+      .append(Component.literal("${failed.stage}: ").withStyle(ChatFormatting.RED))
+      .append(Component.literal(failed.detail).withStyle(ChatFormatting.GRAY))
+    emitDungeonDebug(client, plain, chat)
   }
 
   private fun handleUseKey(client: Minecraft, player: LocalPlayer, level: ClientLevel) {
@@ -161,18 +269,16 @@ object DungeonSecretWaypoints {
       state.`is`(Blocks.CHEST) || state.`is`(Blocks.TRAPPED_CHEST) -> {
         markNearestSecret(
           types = setOf(SecretType.CHEST),
-          origin = Vec3.atCenterOf(blockPos),
-          maxDistanceSq = null,
-          fallback = blockPos,
+          origin = blockPos.center,
+          maxDistanceSq = 0.0,
         )
       }
 
       state.`is`(Blocks.PLAYER_HEAD) || state.`is`(Blocks.PLAYER_WALL_HEAD) -> {
         markNearestSecret(
           types = setOf(SecretType.WITHER, SecretType.REDSTONE_KEY),
-          origin = Vec3.atCenterOf(blockPos),
+          origin = blockPos.center,
           maxDistanceSq = MAX_SKULL_MATCH_DISTANCE_SQ,
-          fallback = blockPos,
         )
       }
 
@@ -208,7 +314,7 @@ object DungeonSecretWaypoints {
         secret.type.red,
         secret.type.green,
         secret.type.blue,
-        secret.type.alpha * 0.28f,
+        secret.type.alpha * BOX_FILL_ALPHA_SCALE,
       )
     }
   }
@@ -220,9 +326,7 @@ object DungeonSecretWaypoints {
 
     if (entries.isEmpty()) return false
 
-    val lines =
-      entries.asSequence().map { entry -> getSidebarLine(scoreboard, entry) }.filter { it.isNotBlank() }.toList()
-    lastSidebarRoomId = extractSidebarRoomId(lines)
+    val lines = entries.map { entry -> getSidebarLine(scoreboard, entry) }.filter { it.isNotBlank() }.toList()
 
     return lines.any { line ->
       line.contains("The Catacombs", ignoreCase = true) || line.contains("Master Mode Catacombs", ignoreCase = true)
@@ -243,20 +347,19 @@ object DungeonSecretWaypoints {
 
   private fun stripFormatting(text: String): String = text.replace(Regex("§."), "")
 
-  private fun extractSidebarRoomId(lines: List<String>): String? {
-    val primaryPattern = Regex("^\\d{2}/\\d{2}/\\d{2}\\s+\\S+\\s+(-?\\d+,-?\\d+)$")
-    val secondaryPattern = Regex("^\\d{2}/\\d{2}/\\d{2}\\s+\\S+\\s+(-?\\d+,-?\\d+)\\b")
-    return lines.asSequence().mapNotNull { line ->
-      primaryPattern.matchEntire(line)?.groupValues?.get(1) ?: secondaryPattern.find(line)?.groupValues?.get(1)
-    }.firstOrNull()
+  private sealed class RoomScanOutcome {
+    data class Ok(val room: DungeonRoomInstance) : RoomScanOutcome()
+    data class Failed(val stage: String, val detail: String) : RoomScanOutcome()
   }
 
-  private fun scanCurrentRoom(level: ClientLevel, start: RoomComponent): DungeonRoomInstance? {
+  private fun scanCurrentRoom(level: ClientLevel, start: RoomComponent): RoomScanOutcome {
+    val startCore = buildRoomCore(level, start.centerX, start.centerZ)
     val visited = linkedSetOf<RoomComponent>()
     val roofHeights = mutableMapOf<RoomComponent, Int>()
     val queue = ArrayDeque<RoomComponent>()
     queue.add(start)
 
+    val coreHashesTried = linkedSetOf<Int>()
     var matchedRoomData: DungeonRoomData? = null
     while (queue.isNotEmpty()) {
       val component = queue.removeFirst()
@@ -266,12 +369,9 @@ object DungeonSecretWaypoints {
       roofHeights[component] = roofHeight
 
       if (matchedRoomData == null) {
-        matchedRoomData = lastSidebarRoomId?.let(DungeonRoomRepository::getRoomById)
-        if (matchedRoomData == null) {
-          matchedRoomData = DungeonRoomRepository.getRoomByCore(
-            computeRoomCore(level, component.centerX, component.centerZ),
-          )
-        }
+        val built = if (component == start) startCore else buildRoomCore(level, component.centerX, component.centerZ)
+        coreHashesTried.add(built.hash)
+        matchedRoomData = DungeonRoomRepository.getRoomByCore(built.hash)
       }
 
       for (direction in directions) {
@@ -282,18 +382,49 @@ object DungeonSecretWaypoints {
       }
     }
 
-    val roomData = matchedRoomData ?: return null
-    val roofHeight = roofHeights.values.maxOrNull() ?: return null
-    val rotationAndCorner = detectRotationAndCorner(level, visited, roofHeight) ?: return null
+    if (roofHeights.isEmpty()) {
+      return RoomScanOutcome.Failed(
+        "void_columns",
+        "no solid column (n=${visited.size} ~${start.centerX},${start.centerZ})",
+      )
+    }
 
-    return DungeonRoomInstance(
-      data = roomData,
-      components = visited,
-      roofHeight = roofHeight,
-      rotation = rotationAndCorner.rotation,
-      cornerX = rotationAndCorner.cornerX,
-      cornerZ = rotationAndCorner.cornerZ,
+    val roomData = matchedRoomData ?: return RoomScanOutcome.Failed(
+      "no_room_data", "no core match @(${start.centerX},${start.centerZ}) hash=${startCore.hash}"
     )
+
+    val roofHeight =
+      roofHeights.values.maxOrNull() ?: return RoomScanOutcome.Failed("no_roof", "roof height aggregate failed")
+
+    val rotationAndCorner = detectRotationAndCorner(level, visited, roofHeight) ?: return RoomScanOutcome.Failed(
+      "no_blue_corner",
+      blueCornerFailureDetail(visited, roofHeight),
+    )
+
+    return RoomScanOutcome.Ok(
+      DungeonRoomInstance(
+        data = roomData,
+        components = visited,
+        roofHeight = roofHeight,
+        rotation = rotationAndCorner.rotation,
+        cornerX = rotationAndCorner.cornerX,
+        cornerZ = rotationAndCorner.cornerZ,
+      ),
+    )
+  }
+
+  private fun blueCornerFailureDetail(visited: Set<RoomComponent>, roofHeight: Int): String {
+    val minX = visited.minOf(RoomComponent::centerX)
+    val maxX = visited.maxOf(RoomComponent::centerX)
+    val minZ = visited.minOf(RoomComponent::centerZ)
+    val maxZ = visited.maxOf(RoomComponent::centerZ)
+    val checks = listOf(
+      Triple(0, minX - 15, minZ - 15),
+      Triple(1, maxX + 15, minZ - 15),
+      Triple(2, maxX + 15, maxZ + 15),
+      Triple(3, minX - 15, maxZ + 15),
+    ).joinToString(" ") { (_, cx, cz) -> "($cx,$roofHeight,$cz)" }
+    return "no blue clay y=$roofHeight $checks (${visited.size} cells)"
   }
 
   private fun isRoomExtension(
@@ -344,38 +475,46 @@ object DungeonSecretWaypoints {
     return null
   }
 
-  private fun computeRoomCore(level: ClientLevel, x: Int, z: Int): Int {
-    val blockIds = StringBuilder()
+  private data class RoomCoreBuild(val hash: Int, val fingerprint: String)
+
+  private fun buildRoomCore(level: ClientLevel, x: Int, z: Int): RoomCoreBuild {
+    val segments = ArrayList<String>(129)
     for (y in 140 downTo 12) {
-      val legacyId = LegacyBlockIds.getLegacyBlockId(level.getBlockState(BlockPos(x, y, z)))
-      if (legacyId in blacklistedLegacyIds) {
-        blockIds.append('0')
-      } else {
-        blockIds.append(legacyId)
+      val state = level.getBlockState(BlockPos(x, y, z))
+      val segment = when {
+        state.isAir -> "0"
+        state.`is`(Blocks.CHEST) || state.`is`(Blocks.TRAPPED_CHEST) || state.`is`(Blocks.IRON_BARS) -> "0"
+        else -> BuiltInRegistries.BLOCK.getKey(state.block).toString()
       }
+      segments.add(segment)
     }
-    return blockIds.toString().hashCode()
+    val fingerprint = segments.joinToString(",")
+    return RoomCoreBuild(fingerprint.hashCode(), fingerprint)
   }
 
   private fun markNearestSecret(
-    types: Set<SecretType>,
-    origin: Vec3,
-    maxDistanceSq: Double?,
-    fallback: BlockPos?,
+    types: Set<SecretType>, origin: Vec3, maxDistanceSq: Double
   ) {
     val room = currentRoom ?: return
-    val candidate = room.secrets.asSequence().filter { it.type in types && !collectedSecrets.contains(it.worldPos) }
+    val candidate = room.secrets.filter { it.type in types && !collectedSecrets.contains(it.worldPos) }
       .map { secret -> secret to secret.center.distanceToSqr(origin) }
-      .filter { (_, distanceSq) -> maxDistanceSq == null || distanceSq <= maxDistanceSq }
-      .minByOrNull { (_, distanceSq) -> distanceSq }?.first
+      .filter { (_, distanceSq) -> distanceSq <= maxDistanceSq }.minByOrNull { (_, distanceSq) -> distanceSq }
 
     if (candidate != null) {
-      collectedSecrets.add(candidate.worldPos)
-      return
-    }
+      val pos = candidate.first.worldPos
+      collectedSecrets.add(pos)
 
-    if (fallback != null) {
-      collectedSecrets.add(fallback.immutable())
+      val plain = "collected secret $types at ${pos.x} ${pos.y} ${pos.z} from ${candidate.second}"
+      val chat: MutableComponent = Component.literal("$DEBUG_LOG_PREFIX ").withStyle(ChatFormatting.GOLD)
+        .append(Component.literal("collected secret ").withStyle(ChatFormatting.BLUE))
+        .append(Component.literal("$types ").withStyle(ChatFormatting.GRAY))
+        .append(Component.literal("at ").withStyle(ChatFormatting.BLUE))
+        .append(Component.literal("${pos.x} ${pos.y} ${pos.z} ").withStyle(ChatFormatting.WHITE))
+        .append(Component.literal("from ").withStyle(ChatFormatting.BLUE))
+        .append(Component.literal("${candidate.second}").withStyle(ChatFormatting.WHITE))
+      emitDungeonDebug(Minecraft.getInstance(), plain, chat)
+
+      return
     }
   }
 
@@ -383,11 +522,12 @@ object DungeonSecretWaypoints {
     collectedSecrets.clear()
     currentRoom = null
     lastScannedComponent = null
+    lastAnnouncedRoomKey = null
+    lastScanFailureSignature = null
     useKeyWasDown = false
     tickCounter = 0
     wasInDungeon = false
     lastWorldId = 0
-    lastSidebarRoomId = null
   }
 
   private data class RoomComponent(val arrayX: Int, val arrayZ: Int) {

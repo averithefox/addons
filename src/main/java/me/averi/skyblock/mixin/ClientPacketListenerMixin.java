@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {
   @Inject(method = "handleTakeItemEntity", at = @At("HEAD"))
-  private void foxAddons$handleTakeItemEntity(ClientboundTakeItemEntityPacket packet, CallbackInfo ci) {
+  private void handleTakeItemEntity(ClientboundTakeItemEntityPacket packet, CallbackInfo ci) {
     DungeonSecretWaypoints.INSTANCE.handleItemPickup(packet);
   }
 
   @Inject(method = "handleSoundEvent", at = @At("HEAD"))
-  private void foxAddons$handleSoundEvent(ClientboundSoundPacket packet, CallbackInfo ci) {
+  private void handleSoundEvent(ClientboundSoundPacket packet, CallbackInfo ci) {
     DungeonSecretWaypoints.INSTANCE.handleSound(packet);
   }
 }

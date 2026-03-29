@@ -17,7 +17,7 @@
   "entrypoints": {
     "client": [
       {
-        "value": "me.averi.skyblock.Main",
+        "value": "me.averi.skyblock.FoxAddons",
         "adapter": "kotlin"
       }
     ]

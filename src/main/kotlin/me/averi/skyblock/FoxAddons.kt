@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.serialization.JsonOps
 import me.averi.skyblock.dungeons.DungeonSecretWaypoints
+import me.averi.skyblock.dungeons.DebugCommands
 import me.averi.skyblock.mixin.AbstractContainerScreenAccessor
 import me.averi.skyblock.mixin.KeyMappingAccessor
 import net.fabricmc.api.ClientModInitializer
@@ -16,7 +17,9 @@ import net.minecraft.resources.RegistryOps
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.glfw.GLFW
 
-object Main : ClientModInitializer {
+object FoxAddons : ClientModInitializer {
+  val isDebug by lazy { java.lang.Boolean.getBoolean("foxaddons.debug") }
+
   private val copyItemStackKey = KeyMapping(
     "key.foxaddons.copy_itemstack",
     GLFW.GLFW_KEY_F7,
@@ -28,6 +31,7 @@ object Main : ClientModInitializer {
   override fun onInitializeClient() {
     KeyBindingHelper.registerKeyBinding(copyItemStackKey)
     DungeonSecretWaypoints.init()
+    if (isDebug) DebugCommands.register()
 
     ClientTickEvents.END_CLIENT_TICK.register { client ->
       val down = isBindingKeyDown(client, copyItemStackKey)
