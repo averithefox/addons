@@ -54,7 +54,6 @@ object DungeonSecretWaypoints {
 
   private var lastWorldId: Int = 0
   private var wasInDungeon = false
-  private var useKeyWasDown = false
   private var tickCounter = 0
   private var lastScannedComponent: RoomComponent? = null
 
@@ -259,10 +258,7 @@ object DungeonSecretWaypoints {
   }
 
   private fun handleUseKey(client: Minecraft, player: LocalPlayer, level: ClientLevel) {
-    val down = client.options.keyUse.isDown
-    val pressed = down && !useKeyWasDown
-    useKeyWasDown = down
-    if (!pressed) return
+    if (!client.options.keyUse.isDown) return
 
     val hit = client.hitResult as? BlockHitResult ?: return
     if (hit.type != net.minecraft.world.phys.HitResult.Type.BLOCK) return
@@ -528,7 +524,6 @@ object DungeonSecretWaypoints {
     lastScannedComponent = null
     lastAnnouncedRoomKey = null
     lastScanFailureSignature = null
-    useKeyWasDown = false
     tickCounter = 0
     wasInDungeon = false
     lastWorldId = 0
