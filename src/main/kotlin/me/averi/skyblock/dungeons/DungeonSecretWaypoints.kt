@@ -2,8 +2,8 @@ package me.averi.skyblock.dungeons
 
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexConsumer
 import me.averi.skyblock.FoxAddons.isDebug
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
@@ -17,7 +17,6 @@ import net.minecraft.client.player.LocalPlayer
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderType
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
@@ -67,8 +66,7 @@ object DungeonSecretWaypoints {
     val pipeline = RenderPipelines.register(
       RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
         .withLocation(ResourceLocation.fromNamespaceAndPath("fox-addons", "pipeline/secret_filled_box"))
-        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
-        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).build(),
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).build(),
     )
     RenderType.create(
       "fox_secret_filled_box",
@@ -302,7 +300,7 @@ object DungeonSecretWaypoints {
       if (collectedSecrets.contains(secret.worldPos)) continue
       val box = secret.box.move(-cameraPos.x, -cameraPos.y, -cameraPos.z)
       val buffer = consumers.getBuffer(renderType)
-      ShapeRenderer.addChainedFilledBoxVertices(
+      addFilledBoxVertices(
         matrices,
         buffer,
         box.minX,
@@ -317,6 +315,54 @@ object DungeonSecretWaypoints {
         secret.type.alpha * BOX_FILL_ALPHA_SCALE,
       )
     }
+  }
+
+  // Emits 24 QUADS vertices (6 faces × 4 vertices) for a filled axis-aligned box.
+  // Matches the technique used by odtheking/Odin PrimitiveRenderer.addChainedFilledBoxVertices.
+  private fun addFilledBoxVertices(
+    poseStack: PoseStack,
+    buffer: VertexConsumer,
+    minX: Double, minY: Double, minZ: Double,
+    maxX: Double, maxY: Double, maxZ: Double,
+    r: Float, g: Float, b: Float, a: Float,
+  ) {
+    val pose = poseStack.last()
+    val x0 = minX.toFloat()
+    val y0 = minY.toFloat()
+    val z0 = minZ.toFloat()
+    val x1 = maxX.toFloat()
+    val y1 = maxY.toFloat()
+    val z1 = maxZ.toFloat()
+
+    buffer.addVertex(pose, x0, y0, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y0, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y1, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y1, z0).setColor(r, g, b, a)
+
+    buffer.addVertex(pose, x1, y0, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y0, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y1, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y1, z1).setColor(r, g, b, a)
+
+    buffer.addVertex(pose, x0, y0, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y1, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y1, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y0, z0).setColor(r, g, b, a)
+
+    buffer.addVertex(pose, x1, y0, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y1, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y1, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y0, z1).setColor(r, g, b, a)
+
+    buffer.addVertex(pose, x0, y0, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y0, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y0, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y0, z1).setColor(r, g, b, a)
+
+    buffer.addVertex(pose, x0, y1, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y1, z1).setColor(r, g, b, a)
+    buffer.addVertex(pose, x1, y1, z0).setColor(r, g, b, a)
+    buffer.addVertex(pose, x0, y1, z0).setColor(r, g, b, a)
   }
 
   private fun isInDungeon(level: ClientLevel): Boolean {
