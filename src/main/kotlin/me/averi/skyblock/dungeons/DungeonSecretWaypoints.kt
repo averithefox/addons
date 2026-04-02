@@ -5,6 +5,8 @@ import com.mojang.blaze3d.platform.DepthTestFunction
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
 import me.averi.skyblock.FoxAddons.isDebug
+import me.averi.skyblock.IrisCompat
+import me.averi.skyblock.IrisShaderType
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
@@ -63,19 +65,20 @@ object DungeonSecretWaypoints {
   private var lastScanFailureSignature: String? = null
   private var lastOutOfGridDebugTick: Int = -10_000
 
+  private val secretFilledBoxPipeline: RenderPipeline = RenderPipelines.register(
+    RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+      .withLocation(ResourceLocation.fromNamespaceAndPath("fox-addons", "pipeline/secret_filled_box"))
+      .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
+      .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).build(),
+  )
+
   private val secretFilledThroughWallsType: RenderType by lazy {
-    val pipeline = RenderPipelines.register(
-      RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-        .withLocation(ResourceLocation.fromNamespaceAndPath("fox-addons", "pipeline/secret_filled_box"))
-        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
-        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).build(),
-    )
     RenderType.create(
       "fox_secret_filled_box",
       1536,
       false,
       true,
-      pipeline,
+      secretFilledBoxPipeline,
       RenderType.CompositeState.builder().setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
         .createCompositeState(false),
     )
@@ -83,8 +86,9 @@ object DungeonSecretWaypoints {
 
   fun init() {
     ClientTickEvents.END_CLIENT_TICK.register(::onClientTick)
-    WorldRenderEvents.BEFORE_DEBUG_RENDER.register(::renderSecrets)
+    WorldRenderEvents.END_MAIN.register(::renderSecrets)
     registerDebugHud()
+    IrisCompat.registerPipeline(secretFilledBoxPipeline, IrisShaderType.BASIC)
   }
 
   private fun registerDebugHud() {

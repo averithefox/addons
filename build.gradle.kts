@@ -7,7 +7,11 @@ plugins {
   id("com.github.jmongard.git-semver-plugin") version "0.18.0"
 }
 
-version = semver.semVersion.toString()
+semver {
+  groupVersionIncrements = false
+}
+
+version = semver.infoVersion
 group = providers.gradleProperty("maven_group").get()
 
 base {
@@ -16,6 +20,7 @@ base {
 
 repositories {
   maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+  maven("https://api.modrinth.com/maven")
 }
 
 dependencies {
@@ -29,6 +34,7 @@ dependencies {
   modImplementation("net.fabricmc:fabric-language-kotlin:${providers.gradleProperty("fabric_kotlin_version").get()}")
 
   modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+  modCompileOnly("maven.modrinth:iris:${providers.gradleProperty("iris_version").get()}")
 }
 
 tasks.processResources {
@@ -50,7 +56,7 @@ kotlin {
 }
 
 java {
-  withSourcesJar()
+//  withSourcesJar()
 
   sourceCompatibility = JavaVersion.VERSION_21
   targetCompatibility = JavaVersion.VERSION_21
