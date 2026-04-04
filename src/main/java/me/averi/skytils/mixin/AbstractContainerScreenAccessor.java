@@ -1,4 +1,4 @@
-package me.averi.skyblock.mixin;
+package me.averi.skytils.mixin;
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;

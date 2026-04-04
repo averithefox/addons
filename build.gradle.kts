@@ -24,12 +24,10 @@ repositories {
 }
 
 dependencies {
-  // To change the versions see the gradle.properties file
   minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
   mappings(loom.officialMojangMappings())
   modImplementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
 
-  // Fabric API. This is technically optional, but you probably want it anyway.
   modImplementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
   modImplementation("net.fabricmc:fabric-language-kotlin:${providers.gradleProperty("fabric_kotlin_version").get()}")
 
@@ -37,16 +35,45 @@ dependencies {
   modCompileOnly("maven.modrinth:iris:${providers.gradleProperty("iris_version").get()}")
 }
 
-tasks.processResources {
-  inputs.property("version", version)
-
-  filesMatching("fabric.mod.json") {
-    expand("version" to version)
+loom {
+  runConfigs.named("client") {
+    isIdeConfigGenerated = true
+    vmArgs.addAll(
+      arrayOf(
+        "-Dmixin.debug.export=true",
+        "-Ddevauth.enabled=true",
+        "-Ddevauth.account=main",
+      )
+    )
   }
 }
 
-tasks.withType<JavaCompile>().configureEach {
-  options.release = 21
+afterEvaluate {
+  loom.runs.named("client") {
+    vmArg("-javaagent:${configurations.compileClasspath.get().find { it.name.contains("sponge-mixin") }}")
+  }
+}
+
+tasks {
+  processResources {
+    inputs.property("version", version)
+
+    filesMatching("fabric.mod.json") {
+      expand("version" to version)
+    }
+  }
+
+  withType<JavaCompile>().configureEach {
+    options.release = 21
+  }
+
+  jar {
+    inputs.property("archivesName", base.archivesName)
+
+    from("LICENSE") {
+      rename { "${it}_${base.archivesName.get()}" }
+    }
+  }
 }
 
 kotlin {
@@ -56,16 +83,6 @@ kotlin {
 }
 
 java {
-//  withSourcesJar()
-
   sourceCompatibility = JavaVersion.VERSION_21
   targetCompatibility = JavaVersion.VERSION_21
-}
-
-tasks.jar {
-  inputs.property("archivesName", base.archivesName)
-
-  from("LICENSE") {
-    rename { "${it}_${base.archivesName.get()}" }
-  }
 }

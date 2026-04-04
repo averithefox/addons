@@ -1,4 +1,4 @@
-package me.averi.skyblock
+package me.averi.skytils
 
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import net.fabricmc.loader.api.FabricLoader

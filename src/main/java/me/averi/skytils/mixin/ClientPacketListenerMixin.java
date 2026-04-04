@@ -1,6 +1,6 @@
-package me.averi.skyblock.mixin;
+package me.averi.skytils.mixin;
 
-import me.averi.skyblock.dungeons.DungeonSecretWaypoints;
+import me.averi.skytils.dungeons.DungeonSecretWaypoints;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket;

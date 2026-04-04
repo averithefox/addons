@@ -17,13 +17,18 @@
   "entrypoints": {
     "client": [
       {
-        "value": "me.averi.skyblock.FoxAddons",
+        "value": "me.averi.skytils.FoxAddons",
+        "adapter": "kotlin"
+      },
+      {
+        "value": "me.averi.wynntils.FoxAddons",
         "adapter": "kotlin"
       }
     ]
   },
   "mixins": [
-    "fox-addons.mixins.json"
+    "me.averi.skytils.mixins.json",
+    "me.averi.wynntils.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.18.5",

@@ -1,4 +1,4 @@
-package me.averi.skyblock.dungeons
+package me.averi.skytils.dungeons
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray

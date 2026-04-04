@@ -1,3 +1,8 @@
 {
-  "key.foxaddons.copy_itemstack": "Copy item JSON to clipboard"
+  "key.category.foxaddons.wynncraft": "Fox Addons > Wynncraft",
+  "key.foxaddons.copy_itemstack": "Copy item JSON to clipboard",
+  "key.foxaddons.spell1": "1st Spell",
+  "key.foxaddons.spell2": "2nd Spell",
+  "key.foxaddons.spell3": "3rd Spell",
+  "key.foxaddons.spell4": "4th Spell"
 }

@@ -1,12 +1,12 @@
-package me.averi.skyblock
+package me.averi.skytils
 
 import com.google.gson.GsonBuilder
 import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.serialization.JsonOps
-import me.averi.skyblock.dungeons.DungeonSecretWaypoints
-import me.averi.skyblock.dungeons.DebugCommands
-import me.averi.skyblock.mixin.AbstractContainerScreenAccessor
-import me.averi.skyblock.mixin.KeyMappingAccessor
+import me.averi.skytils.dungeons.DungeonSecretWaypoints
+import me.averi.skytils.dungeons.DebugCommands
+import me.averi.skytils.mixin.AbstractContainerScreenAccessor
+import me.averi.skytils.mixin.KeyMappingAccessor
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper

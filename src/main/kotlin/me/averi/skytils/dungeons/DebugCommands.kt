@@ -1,4 +1,4 @@
-package me.averi.skyblock.dungeons
+package me.averi.skytils.dungeons
 
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument

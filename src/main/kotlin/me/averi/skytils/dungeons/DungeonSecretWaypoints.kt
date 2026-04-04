@@ -1,12 +1,12 @@
-package me.averi.skyblock.dungeons
+package me.averi.skytils.dungeons
 
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.VertexFormat
-import me.averi.skyblock.FoxAddons.isDebug
-import me.averi.skyblock.IrisCompat
-import me.averi.skyblock.IrisShaderType
+import me.averi.skytils.FoxAddons.isDebug
+import me.averi.skytils.IrisCompat
+import me.averi.skytils.IrisShaderType
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
@@ -66,7 +66,7 @@ object DungeonSecretWaypoints {
 
   private val secretFilledBoxPipeline: RenderPipeline = RenderPipelines.register(
     RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-      .withLocation(ResourceLocation.fromNamespaceAndPath("fox-addons", "pipeline/secret_filled_box"))
+      .withLocation(ResourceLocation.fromNamespaceAndPath("foxaddons", "pipeline/secret_filled_box"))
       .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
       .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).build(),
   )
@@ -93,7 +93,7 @@ object DungeonSecretWaypoints {
   private fun registerDebugHud() {
     HudElementRegistry.attachElementBefore(
       VanillaHudElements.CHAT,
-      ResourceLocation.fromNamespaceAndPath("fox-addons", "hud/debug_room_name"),
+      ResourceLocation.fromNamespaceAndPath("foxaddons", "hud/debug_room_name"),
     ) { graphics, _ ->
       debugHudRoomLine()?.let { line ->
         val client = Minecraft.getInstance()

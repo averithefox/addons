@@ -1,4 +1,4 @@
-package me.averi.skyblock.mixin;
+package me.averi.skytils.mixin;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;

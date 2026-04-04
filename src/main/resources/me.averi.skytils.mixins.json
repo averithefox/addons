@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "me.averi.skyblock.mixin",
+  "package": "me.averi.skytils.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
     "AbstractSignEditScreenMixin",
