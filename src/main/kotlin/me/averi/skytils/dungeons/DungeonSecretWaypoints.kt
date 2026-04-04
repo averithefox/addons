@@ -3,6 +3,8 @@ package me.averi.skytils.dungeons
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.DepthTestFunction
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.blaze3d.vertex.VertexFormat
 import me.averi.skytils.FoxAddons.isDebug
 import me.averi.skytils.IrisCompat
@@ -17,16 +19,16 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.client.renderer.RenderStateShard
-import net.minecraft.client.renderer.RenderType
-import net.minecraft.client.renderer.ShapeRenderer
+import net.minecraft.client.renderer.rendertype.LayeringTransform
+import net.minecraft.client.renderer.rendertype.RenderSetup
+import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.core.BlockPos
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.level.block.Blocks
@@ -66,20 +68,21 @@ object DungeonSecretWaypoints {
 
   private val secretFilledBoxPipeline: RenderPipeline = RenderPipelines.register(
     RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-      .withLocation(ResourceLocation.fromNamespaceAndPath("foxaddons", "pipeline/secret_filled_box"))
+      .withLocation("foxaddons.pipeline/secret_filled_box")
       .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP)
-      .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST).withDepthWrite(false).build(),
+      .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+      .withDepthWrite(false)
+      .build(),
   )
 
   private val secretFilledThroughWallsType: RenderType by lazy {
     RenderType.create(
       "fox_secret_filled_box",
-      1536,
-      false,
-      true,
-      secretFilledBoxPipeline,
-      RenderType.CompositeState.builder().setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
-        .createCompositeState(false),
+      RenderSetup.builder(secretFilledBoxPipeline)
+        .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
+        .sortOnUpload()
+        .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+        .createRenderSetup()
     )
   }
 
@@ -93,7 +96,7 @@ object DungeonSecretWaypoints {
   private fun registerDebugHud() {
     HudElementRegistry.attachElementBefore(
       VanillaHudElements.CHAT,
-      ResourceLocation.fromNamespaceAndPath("foxaddons", "hud/debug_room_name"),
+      Identifier.fromNamespaceAndPath("foxaddons", "hud/debug_room_name")
     ) { graphics, _ ->
       debugHudRoomLine()?.let { line ->
         val client = Minecraft.getInstance()
@@ -293,17 +296,17 @@ object DungeonSecretWaypoints {
 
   private fun renderSecrets(context: WorldRenderContext) {
     val room = currentRoom ?: return
-    val matrices = context.matrices() ?: return
+    val matrices = context.matrices()
     val consumers = context.consumers()
-    val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position
+    val cameraPos = Minecraft.getInstance().gameRenderer.mainCamera.position()
 
     val renderType = secretFilledThroughWallsType
     for (secret in room.secrets) {
       if (collectedSecrets.contains(secret.worldPos)) continue
       val box = secret.box.move(-cameraPos.x, -cameraPos.y, -cameraPos.z)
       val buffer = consumers.getBuffer(renderType)
-      ShapeRenderer.addChainedFilledBoxVertices(
-        matrices,
+      addFilledBoxVertices(
+        matrices.last(),
         buffer,
         box.minX,
         box.minY,
@@ -317,6 +320,77 @@ object DungeonSecretWaypoints {
         secret.type.alpha * BOX_FILL_ALPHA_SCALE,
       )
     }
+  }
+
+  private fun addFilledBoxVertices(
+    pose: PoseStack.Pose,
+    buffer: VertexConsumer,
+    x1: Double,
+    y1: Double,
+    z1: Double,
+    x2: Double,
+    y2: Double,
+    z2: Double,
+    r: Float,
+    g: Float,
+    b: Float,
+    a: Float
+  ) {
+    val minX = x1.toFloat()
+    val minY = y1.toFloat()
+    val minZ = z1.toFloat()
+    val maxX = x2.toFloat()
+    val maxY = y2.toFloat()
+    val maxZ = z2.toFloat()
+
+    addQuad(buffer, pose, minX, minY, minZ, maxX, minY, minZ, maxX, minY, maxZ, minX, minY, maxZ, r, g, b, a)
+    addQuad(buffer, pose, minX, maxY, minZ, minX, maxY, maxZ, maxX, maxY, maxZ, maxX, maxY, minZ, r, g, b, a)
+    addQuad(buffer, pose, minX, minY, minZ, minX, maxY, minZ, maxX, maxY, minZ, maxX, minY, minZ, r, g, b, a)
+    addQuad(buffer, pose, minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, r, g, b, a)
+    addQuad(buffer, pose, minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minX, maxY, minZ, r, g, b, a)
+    addQuad(buffer, pose, maxX, minY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxX, minY, maxZ, r, g, b, a)
+  }
+
+  private fun addVertex(
+    buffer: VertexConsumer,
+    pose: PoseStack.Pose,
+    x: Float,
+    y: Float,
+    z: Float,
+    r: Float,
+    g: Float,
+    b: Float,
+    a: Float
+  ) {
+    buffer.addVertex(pose, x, y, z).setColor(r, g, b, a)
+  }
+
+  private fun addQuad(
+    buffer: VertexConsumer,
+    pose: PoseStack.Pose,
+    x1: Float,
+    y1: Float,
+    z1: Float,
+    x2: Float,
+    y2: Float,
+    z2: Float,
+    x3: Float,
+    y3: Float,
+    z3: Float,
+    x4: Float,
+    y4: Float,
+    z4: Float,
+    r: Float,
+    g: Float,
+    b: Float,
+    a: Float
+  ) {
+    addVertex(buffer, pose, x1, y1, z1, r, g, b, a)
+    addVertex(buffer, pose, x2, y2, z2, r, g, b, a)
+    addVertex(buffer, pose, x3, y3, z3, r, g, b, a)
+    addVertex(buffer, pose, x1, y1, z1, r, g, b, a)
+    addVertex(buffer, pose, x3, y3, z3, r, g, b, a)
+    addVertex(buffer, pose, x4, y4, z4, r, g, b, a)
   }
 
   private fun isInDungeon(level: ClientLevel): Boolean {

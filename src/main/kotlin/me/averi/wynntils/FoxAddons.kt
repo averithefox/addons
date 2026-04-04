@@ -5,10 +5,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.KeyMapping
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 
 object FoxAddons : ClientModInitializer {
-  val KEY_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath("foxaddons", "wynncraft"))
+  val KEY_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("foxaddons", "wynncraft"))
 
   val spell1Key = KeyMapping("key.foxaddons.spell1", -1, KEY_CATEGORY)
   val spell2Key = KeyMapping("key.foxaddons.spell2", -1, KEY_CATEGORY)
