@@ -3,6 +3,8 @@
   "package": "me.averi.wynntils.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "EntityRendererMixin",
+    "EntityRenderStateMixin",
     "MinecraftMixin",
     "MultiPlayerGameModeMixin"
   ],
