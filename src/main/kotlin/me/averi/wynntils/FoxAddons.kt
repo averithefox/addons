@@ -1,6 +1,8 @@
 package me.averi.wynntils
 
+import me.averi.wynntils.features.Debug
 import me.averi.wynntils.features.SpellMacro
+import me.averi.wynntils.features.TotemMinifier
 import me.averi.wynntils.features.TotemTimer
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.KeyMapping
@@ -14,5 +16,7 @@ object FoxAddons : ClientModInitializer {
   override fun onInitializeClient() {
     SpellMacro.register()
     TotemTimer.register()
+    Debug.register()
+    TotemMinifier.register()
   }
 }

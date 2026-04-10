@@ -1,7 +1,8 @@
 package me.averi.wynntils.mixin;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import me.averi.wynntils.ClickQueue;
+import me.averi.wynntils.events.EventBus;
+import me.averi.wynntils.events.StartAttackEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
@@ -13,6 +14,8 @@ public class MinecraftMixin {
   @WrapWithCondition(method = "startAttack()Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"))
   private boolean startAttack(LocalPlayer instance, InteractionHand interactionHand) {
     if (interactionHand != InteractionHand.MAIN_HAND) return true;
-    return ClickQueue.INSTANCE.isEmpty();
+    var event = new StartAttackEvent();
+    EventBus.INSTANCE.publish(event);
+    return !event.isCancelled();
   }
 }

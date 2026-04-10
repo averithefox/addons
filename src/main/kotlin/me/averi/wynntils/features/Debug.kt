@@ -2,6 +2,8 @@ package me.averi.wynntils.features
 
 import com.mojang.blaze3d.vertex.PoseStack
 import me.averi.wynntils.FoxAddons
+import me.averi.wynntils.events.EntityRenderEvent
+import me.averi.wynntils.events.EventBus.subscribe
 import me.averi.wynntils.utils.mc
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.SubmitNodeCollector
@@ -13,6 +15,12 @@ import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 
 object Debug {
+  fun register() {
+    subscribe<EntityRenderEvent> {
+      onRenderEntity(entity, matrices, queue, cameraState, renderState.lightCoords)
+    }
+  }
+
   fun onRenderEntity(
     entity: Entity,
     poseStack: PoseStack,

@@ -2,6 +2,9 @@ package me.averi.wynntils.features
 
 import me.averi.wynntils.FoxAddons.KEY_CATEGORY
 import me.averi.wynntils.Spell
+import me.averi.wynntils.events.EventBus.subscribe
+import me.averi.wynntils.events.StartAttackEvent
+import me.averi.wynntils.events.UseItemEvent
 import me.averi.wynntils.utils.attack
 import me.averi.wynntils.utils.localPlayer
 import me.averi.wynntils.utils.use
@@ -15,6 +18,8 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
 object SpellMacro {
+  const val DELAY = 80L
+
   private val spell1Key = KeyMapping("key.foxaddons.spell1", -1, KEY_CATEGORY)
   private val spell2Key = KeyMapping("key.foxaddons.spell2", -1, KEY_CATEGORY)
   private val spell3Key = KeyMapping("key.foxaddons.spell3", -1, KEY_CATEGORY)
@@ -38,6 +43,15 @@ object SpellMacro {
       checkSpellKey(spell3Key, Spell.THIRD)
       checkSpellKey(spell4Key, Spell.FOURTH)
     }
+
+    subscribe<StartAttackEvent> {
+      if (!queue.isEmpty()) cancel()
+    }
+
+    subscribe<UseItemEvent> {
+      if (!player.isLocalPlayer) return@subscribe
+      if (!queue.isEmpty()) cancel()
+    }
   }
 
   private fun checkSpellKey(key: KeyMapping, spell: Spell) {
@@ -58,7 +72,7 @@ object SpellMacro {
     while (running.load()) {
       try {
         click(queue.take()/* xor (localPlayer?.getWynnClass() == WynnClass.ARCHER)*/)
-        Thread.sleep(80)
+        Thread.sleep(DELAY)
       } catch (e: InterruptedException) {
         e.printStackTrace()
       }

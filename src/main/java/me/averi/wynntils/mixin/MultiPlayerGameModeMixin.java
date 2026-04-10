@@ -1,6 +1,7 @@
 package me.averi.wynntils.mixin;
 
-import me.averi.wynntils.ClickQueue;
+import me.averi.wynntils.events.EventBus;
+import me.averi.wynntils.events.UseItemEvent;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -14,6 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MultiPlayerGameModeMixin {
   @Inject(method = "useItem", at = @At("HEAD"), cancellable = true)
   private void useItem(Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir) {
-    if (!ClickQueue.INSTANCE.isEmpty()) cir.setReturnValue(InteractionResult.FAIL);
+    var event = new UseItemEvent(player, interactionHand);
+    EventBus.INSTANCE.publish(event);
+    if (event.isCancelled()) {
+      cir.setReturnValue(InteractionResult.FAIL);
+    }
   }
 }

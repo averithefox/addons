@@ -1,5 +1,8 @@
 package me.averi.wynntils.features
 
+import me.averi.wynntils.events.EntityDataEvent
+import me.averi.wynntils.events.EventBus.subscribe
+import me.averi.wynntils.events.RemoveEntitiesEvent
 import me.averi.wynntils.utils.drawCircle
 import me.averi.wynntils.utils.mc
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
@@ -32,6 +35,14 @@ object TotemTimer : HudElement, ClientWorldEvents.AfterClientWorldChange {
     HudElementRegistry.addLast(
       Identifier.fromNamespaceAndPath("foxaddons", "totem_timer"), this
     )
+
+    subscribe<EntityDataEvent> {
+      onEntityData(packet)
+    }
+
+    subscribe<RemoveEntitiesEvent> {
+      onRemoveEntities(packet)
+    }
   }
 
   override fun render(ctx: GuiGraphics, deltaTracker: DeltaTracker) {
