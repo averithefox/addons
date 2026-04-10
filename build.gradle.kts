@@ -41,7 +41,7 @@ dependencies {
 }
 
 loom {
-  accessWidenerPath = file("src/main/resources/.accesswidener")
+  accessWidenerPath = file("src/main/resources/fox-addons.accesswidener")
 
   runConfigs.named("client") {
     isIdeConfigGenerated = true

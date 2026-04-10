@@ -1,7 +1,5 @@
 package me.averi.wynntils.mixin;
 
-import com.mojang.serialization.Codec;
-
 import java.io.File;
 
 import net.minecraft.client.Minecraft;

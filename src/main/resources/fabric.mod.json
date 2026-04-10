@@ -25,6 +25,7 @@
   "mixins": [
     "me.averi.wynntils.mixins.json"
   ],
+  "accessWidener": "fox-addons.accesswidener",
   "depends": {
     "fabricloader": ">=${loaderVersion}",
     "minecraft": "~${minecraftVersion}",
