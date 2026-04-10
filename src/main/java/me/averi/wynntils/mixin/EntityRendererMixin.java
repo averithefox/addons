@@ -2,7 +2,7 @@ package me.averi.wynntils.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
-import me.averi.wynntils.DebugRenderer;
+import me.averi.wynntils.features.Debug;
 import me.averi.wynntils.interfaces.EntityFieldAccessor;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -42,6 +42,6 @@ public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> 
       }
     }
 
-    DebugRenderer.INSTANCE.onRenderEntity(entity, poseStack, submitNodeCollector, cameraRenderState, entityRenderState.lightCoords);
+    Debug.INSTANCE.onRenderEntity(entity, poseStack, submitNodeCollector, cameraRenderState, entityRenderState.lightCoords);
   }
 }

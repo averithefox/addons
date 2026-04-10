@@ -1,7 +1,7 @@
-package me.averi.wynntils
+package me.averi.wynntils.features
 
 import com.mojang.blaze3d.vertex.PoseStack
-import me.averi.wynntils.FoxAddons.isDebug
+import me.averi.wynntils.FoxAddons
 import me.averi.wynntils.utils.mc
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.SubmitNodeCollector
@@ -12,7 +12,7 @@ import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 
-object DebugRenderer {
+object Debug {
   fun onRenderEntity(
     entity: Entity,
     poseStack: PoseStack,
@@ -20,7 +20,7 @@ object DebugRenderer {
     cameraRenderState: CameraRenderState,
     packedLight: Int
   ) {
-    if (!isDebug) return
+    if (!FoxAddons.isDebug) return
     var text = "${entity.type}"
     if (entity is Display.ItemDisplay) {
       val item = entity.itemStack

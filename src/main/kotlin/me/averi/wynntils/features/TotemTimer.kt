@@ -1,15 +1,17 @@
-package me.averi.wynntils
+package me.averi.wynntils.features
 
 import me.averi.wynntils.utils.drawCircle
 import me.averi.wynntils.utils.mc
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.minecraft.client.DeltaTracker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.resources.Identifier
 import net.minecraft.world.entity.Display
 import java.util.regex.Pattern
 import kotlin.math.max
@@ -24,28 +26,10 @@ object TotemTimer : HudElement, ClientWorldEvents.AfterClientWorldChange {
   private val displayRatios = mutableMapOf<Int, Float>()
   private fun lerp(start: Float, end: Float, t: Float) = start + (end - start) * t
 
-  private fun GuiGraphics.drawString(
-    text: String,
-    centerX: Float,
-    centerY: Float,
-    color: Int,
-    scale: Float = 1f
-  ) {
-    val pose = pose()
-    pose.pushMatrix()
-
-    val strWidth = mc.font.width(text)
-    val strHeight = mc.font.lineHeight
-
-    val x = centerX - (strWidth * scale) / 2f
-    val y = centerY - (strHeight * scale) / 2f
-
-    pose.translate(x, y)
-    pose.scale(scale, scale)
-
-    drawString(mc.font, text, 0, 0, color)
-
-    pose.popMatrix()
+  fun register() {
+    HudElementRegistry.addLast(
+      Identifier.fromNamespaceAndPath("foxaddons", "totem_timer"), this
+    )
   }
 
   override fun render(ctx: GuiGraphics, deltaTracker: DeltaTracker) {

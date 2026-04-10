@@ -1,6 +1,6 @@
 package me.averi.wynntils.mixin;
 
-import me.averi.wynntils.TotemTimer;
+import me.averi.wynntils.features.TotemTimer;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
