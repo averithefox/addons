@@ -6,7 +6,8 @@
     "EntityRendererMixin",
     "EntityRenderStateMixin",
     "MinecraftMixin",
-    "MultiPlayerGameModeMixin"
+    "MultiPlayerGameModeMixin",
+    "OptionsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

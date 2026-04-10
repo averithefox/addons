@@ -41,6 +41,8 @@ dependencies {
 }
 
 loom {
+  accessWidenerPath = file("src/main/resources/.accesswidener")
+
   runConfigs.named("client") {
     isIdeConfigGenerated = true
     vmArgs.addAll(
