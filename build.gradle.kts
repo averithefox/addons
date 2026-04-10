@@ -12,10 +12,15 @@ semver {
 }
 
 version = semver.infoVersion
-group = providers.gradleProperty("maven_group").get()
+val archivesBaseName: String by project
+val minecraftVersion: String by project
+val loaderVersion: String by project
+val fabricApiVersion: String by project
+val fabricKotlinVersion: String by project
+val irisVersion: String by project
 
 base {
-  archivesName = providers.gradleProperty("archives_base_name")
+  archivesName = archivesBaseName
 }
 
 repositories {
@@ -24,15 +29,15 @@ repositories {
 }
 
 dependencies {
-  minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
+  minecraft("com.mojang:minecraft:$minecraftVersion")
   mappings(loom.officialMojangMappings())
-  modImplementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
+  modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
 
-  modImplementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
-  modImplementation("net.fabricmc:fabric-language-kotlin:${providers.gradleProperty("fabric_kotlin_version").get()}")
+  modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+  modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
 
   modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
-  modCompileOnly("maven.modrinth:iris:${providers.gradleProperty("iris_version").get()}")
+  modCompileOnly("maven.modrinth:iris:$irisVersion")
 }
 
 loom {
@@ -40,10 +45,7 @@ loom {
     isIdeConfigGenerated = true
     vmArgs.addAll(
       arrayOf(
-        "-Dmixin.debug.export=true",
-        "-Ddevauth.enabled=true",
-        "-Ddevauth.account=main",
-        "-Dfoxaddons.debug=true"
+        "-Dmixin.debug.export=true", "-Ddevauth.enabled=true", "-Ddevauth.account=main", "-Dfoxaddons.debug=true"
       )
     )
   }
@@ -57,10 +59,8 @@ afterEvaluate {
 
 tasks {
   processResources {
-    inputs.property("version", version)
-
     filesMatching("fabric.mod.json") {
-      expand("version" to version)
+      expand(project.properties)
     }
   }
 
