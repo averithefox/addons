@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier
 object FoxAddons : ClientModInitializer {
   val isDebug by lazy { java.lang.Boolean.getBoolean("foxaddons.debug") }
 
-  val KEY_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("foxaddons", "wynncraft"))
+  val KEY_CATEGORY = KeyMapping.Category.register(Identifier.fromNamespaceAndPath("foxaddons", "main"))
 
   val spell1Key = KeyMapping("key.foxaddons.spell1", -1, KEY_CATEGORY)
   val spell2Key = KeyMapping("key.foxaddons.spell2", -1, KEY_CATEGORY)

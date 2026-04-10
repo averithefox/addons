@@ -17,17 +17,12 @@
   "entrypoints": {
     "client": [
       {
-        "value": "me.averi.skytils.FoxAddons",
-        "adapter": "kotlin"
-      },
-      {
         "value": "me.averi.wynntils.FoxAddons",
         "adapter": "kotlin"
       }
     ]
   },
   "mixins": [
-    "me.averi.skytils.mixins.json",
     "me.averi.wynntils.mixins.json"
   ],
   "depends": {
