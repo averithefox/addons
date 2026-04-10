@@ -27,6 +27,8 @@ object TotemTimer : HudElement, ClientWorldEvents.AfterClientWorldChange {
   private fun lerp(start: Float, end: Float, t: Float) = start + (end - start) * t
 
   fun register() {
+    ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register(::afterWorldChange)
+
     HudElementRegistry.addLast(
       Identifier.fromNamespaceAndPath("foxaddons", "totem_timer"), this
     )
