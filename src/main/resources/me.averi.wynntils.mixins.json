@@ -3,6 +3,7 @@
   "package": "me.averi.wynntils.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ClientLevelDataMixin",
     "ClientPacketListenerMixin",
     "EntityRendererMixin",
     "EntityRenderStateMixin",
