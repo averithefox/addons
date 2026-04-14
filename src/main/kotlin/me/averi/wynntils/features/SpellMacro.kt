@@ -2,10 +2,12 @@ package me.averi.wynntils.features
 
 import me.averi.wynntils.FoxAddons.KEY_CATEGORY
 import me.averi.wynntils.Spell
+import me.averi.wynntils.constants.WynnClass
 import me.averi.wynntils.events.EventBus.subscribe
 import me.averi.wynntils.events.StartAttackEvent
 import me.averi.wynntils.events.UseItemEvent
 import me.averi.wynntils.utils.attack
+import me.averi.wynntils.utils.getWynnClass
 import me.averi.wynntils.utils.localPlayer
 import me.averi.wynntils.utils.use
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
@@ -71,7 +73,7 @@ object SpellMacro {
   fun start() = Thread {
     while (running.load()) {
       try {
-        click(queue.take()/* xor (localPlayer?.getWynnClass() == WynnClass.ARCHER)*/)
+        click(queue.take() xor (localPlayer?.getWynnClass() == WynnClass.ARCHER))
         Thread.sleep(DELAY)
       } catch (e: InterruptedException) {
         e.printStackTrace()
