@@ -1,53 +1,28 @@
 package me.averi.wynntils.events
 
+import net.neoforged.bus.api.Event
+import net.neoforged.bus.api.ICancellableEvent
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.reflect.KClass
 
-interface Event
-
-interface CancellableEvent : Event {
-  var isCancelled: Boolean
-
-  fun cancel() {
-    isCancelled = true
-  }
-}
-
-fun interface EventSubscription {
-  fun unsubscribe()
-}
-
 object EventBus {
-  private val listeners =
-    ConcurrentHashMap<KClass<out Event>, CopyOnWriteArrayList<(Event) -> Unit>>()
+  private val listeners = ConcurrentHashMap<KClass<out Event>, CopyOnWriteArrayList<(Event) -> Unit>>()
 
-  fun <T : Event> subscribe(type: KClass<T>, listener: T.() -> Unit): EventSubscription {
+  fun <T : Event> subscribe(type: KClass<T>, listener: (T) -> Unit) {
     val typedListeners = listeners.computeIfAbsent(type) { CopyOnWriteArrayList() }
-    @Suppress("UNCHECKED_CAST")
-    val wrappedListener: (Event) -> Unit = { event -> (event as T).listener() }
 
-    typedListeners.add(wrappedListener)
-
-    return EventSubscription {
-      typedListeners.remove(wrappedListener)
-      if (typedListeners.isEmpty()) {
-        listeners.remove(type, typedListeners)
-      }
-    }
+    @Suppress("UNCHECKED_CAST") typedListeners.add(listener as ((Event) -> Unit))
   }
 
-  inline fun <reified T : Event> subscribe(noinline listener: T.() -> Unit): EventSubscription =
-    subscribe(T::class, listener)
+  inline fun <reified T : Event> subscribe(noinline listener: (T) -> Unit) = subscribe(T::class, listener)
 
-  fun <T : Event> publish(event: T): T {
+  fun <T : Event> publish(event: T): Boolean {
     listeners[event::class]?.forEach { listener ->
       listener(event)
-      if (event is CancellableEvent && event.isCancelled) {
-        return event
-      }
+      if (event is ICancellableEvent && event.isCanceled) return true
     }
 
-    return event
+    return false
   }
 }

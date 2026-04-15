@@ -16,8 +16,8 @@ import net.minecraft.world.entity.Entity
 
 object Debug {
   fun register() {
-    subscribe<EntityRenderEvent> {
-      onRenderEntity(entity, matrices, queue, cameraState, renderState.lightCoords)
+    subscribe<EntityRenderEvent> { event ->
+      onRenderEntity(event.entity, event.matrices, event.queue, event.cameraState, event.renderState.lightCoords)
     }
   }
 

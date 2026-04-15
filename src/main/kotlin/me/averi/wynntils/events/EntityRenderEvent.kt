@@ -5,12 +5,13 @@ import net.minecraft.client.renderer.SubmitNodeCollector
 import net.minecraft.client.renderer.entity.state.EntityRenderState
 import net.minecraft.client.renderer.state.CameraRenderState
 import net.minecraft.world.entity.Entity
+import net.neoforged.bus.api.Event
+import net.neoforged.bus.api.ICancellableEvent
 
-data class EntityRenderEvent @JvmOverloads constructor(
+data class EntityRenderEvent(
   val entity: Entity,
   val matrices: PoseStack,
   val queue: SubmitNodeCollector,
   val cameraState: CameraRenderState,
   val renderState: EntityRenderState,
-  override var isCancelled: Boolean = false
-) : CancellableEvent
+) : Event(), ICancellableEvent

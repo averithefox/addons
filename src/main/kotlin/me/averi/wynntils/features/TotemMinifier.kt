@@ -10,8 +10,8 @@ import net.minecraft.world.item.Items
 
 object TotemMinifier {
   fun register() {
-    subscribe<EntityRenderEvent> {
-      onRenderEntity(entity, matrices)
+    subscribe<EntityRenderEvent> { event ->
+      onRenderEntity(event.entity, event.matrices)
     }
   }
 
@@ -19,8 +19,11 @@ object TotemMinifier {
     if (entity !is ItemDisplay) return
     val item = entity.itemStack
     if (!item.`is`(Items.OAK_BOAT)) return
-    val model = item.get(DataComponents.CUSTOM_MODEL_DATA)?.getFloat(0) ?: return
-    if (model == 30601f) {
+    val customModelData = item.get(DataComponents.CUSTOM_MODEL_DATA)
+    val model = customModelData?.getFloat(0) ?: return
+    if (model == 30601f || model == 30602f) {
+      // change shaman totem model to skyseer model
+      if (model == 30601f) customModelData.floats[0] = 30602f
       val scale = 0.4f
       val offset = 1f
       matrices.translate(0.0, (-offset * (1.0f - scale)).toDouble(), 0.0)

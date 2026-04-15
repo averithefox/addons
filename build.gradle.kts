@@ -18,6 +18,7 @@ val loaderVersion: String by project
 val fabricApiVersion: String by project
 val fabricKotlinVersion: String by project
 val irisVersion: String by project
+val wynntilsVersion: String by project
 
 base {
   archivesName = archivesBaseName
@@ -36,8 +37,9 @@ dependencies {
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
 
-  modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+  modLocalRuntime("me.djtheredstoner:DevAuth-fabric:1.2.2")
   modCompileOnly("maven.modrinth:iris:$irisVersion")
+  modImplementation("maven.modrinth:wynntils:v$wynntilsVersion")
 }
 
 loom {
