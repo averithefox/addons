@@ -1,9 +1,10 @@
 package me.averi.wynntils.features
 
 import com.mojang.blaze3d.vertex.PoseStack
-import me.averi.wynntils.FoxAddons
+import com.wynntils.core.consumers.features.ProfileDefault
 import me.averi.wynntils.events.EntityRenderEvent
 import me.averi.wynntils.events.EventBus.subscribe
+import me.averi.wynntils.dx.Feature
 import me.averi.wynntils.utils.mc
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.SubmitNodeCollector
@@ -14,21 +15,21 @@ import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 
-object Debug {
-  fun register() {
+object Debug : Feature(ProfileDefault.DISABLED) {
+  init {
     subscribe<EntityRenderEvent> { event ->
       onRenderEntity(event.entity, event.matrices, event.queue, event.cameraState, event.renderState.lightCoords)
     }
   }
 
-  fun onRenderEntity(
+  private fun onRenderEntity(
     entity: Entity,
     poseStack: PoseStack,
     submitNodeCollector: SubmitNodeCollector,
     cameraRenderState: CameraRenderState,
     packedLight: Int
   ) {
-    if (!FoxAddons.isDebug) return
+    if (!isEnabled) return
     var text = "${entity.type}"
     if (entity is Display.ItemDisplay) {
       val item = entity.itemStack

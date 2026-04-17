@@ -12,7 +12,7 @@ object EventBus {
   fun <T : Event> subscribe(type: KClass<T>, listener: (T) -> Unit) {
     val typedListeners = listeners.computeIfAbsent(type) { CopyOnWriteArrayList() }
 
-    @Suppress("UNCHECKED_CAST") typedListeners.add(listener as ((Event) -> Unit))
+    @Suppress("unchecked_cast") typedListeners.add(listener as ((Event) -> Unit))
   }
 
   inline fun <reified T : Event> subscribe(noinline listener: (T) -> Unit) = subscribe(T::class, listener)

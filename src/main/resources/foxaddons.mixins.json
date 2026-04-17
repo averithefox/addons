@@ -3,11 +3,20 @@
   "package": "me.averi.wynntils.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CategoryMixin",
+    "ConfigManagerMixin",
+    "FeatureManagerMixin",
     "MouseUtilsMixin",
-    "WynntilsModMixin"
+    "TextureMixin",
+    "WynntilsModMixin",
+    "accessors.ConfigAccessor",
+    "accessors.JsonTypeWrapperInvoker",
+    "accessors.OverlayInvoker",
+    "accessors.PersistedManagerInvoker"
   ],
   "client": [
     "ClientLevelDataMixin",
+    "ConfigTileMixin",
     "EntityRendererMixin",
     "EntityRenderStateMixin",
     "OptionsMixin"

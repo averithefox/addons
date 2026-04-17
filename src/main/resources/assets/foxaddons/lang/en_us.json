@@ -1,0 +1,12 @@
+{
+  "category.foxaddons.main": "Fox Addons",
+  "feature.foxaddons.shamanTotemUtils.name": "Shaman Totem Utils",
+  "feature.foxaddons.shamanTotemUtils.description": "Various utilities to make playing shaman more fun",
+  "feature.foxaddons.shamanTotemUtils.changeModel.name": "Change Totem Model",
+  "feature.foxaddons.shamanTotemUtils.changeModel.description": "Should Shaman's totem model be swapped for Skyseer's model",
+  "feature.foxaddons.shamanTotemUtils.totemScale.name": "Totem Scale",
+  "feature.foxaddons.shamanTotemUtils.totemScale.description": "Totem size multiplier",
+  "feature.foxaddons.shamanTotemUtils.overlay.totemTimer.name": "Totem Timer",
+  "feature.foxaddons.debug.name": "Debug",
+  "feature.foxaddons.debug.description": "Dev and Debug utils"
+}

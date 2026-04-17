@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "fox-addons",
+  "id": "foxaddons",
   "version": "${version}",
   "name": "Fox Addons",
   "description": "I'm gay",
@@ -12,7 +12,7 @@
     "sources": "https://github.com/averithefox/addons"
   },
   "license": "GPL-3.0-or-later",
-  "icon": "assets/fox-addons/icon.png",
+  "icon": "assets/foxaddons/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
@@ -23,9 +23,9 @@
     ]
   },
   "mixins": [
-    "me.averi.wynntils.mixins.json"
+    "foxaddons.mixins.json"
   ],
-  "accessWidener": "fox-addons.accesswidener",
+  "accessWidener": "foxaddons.accesswidener",
   "depends": {
     "fabricloader": ">=${loaderVersion}",
     "minecraft": "~${minecraftVersion}",
