@@ -15,10 +15,12 @@
     "accessors.PersistedManagerInvoker"
   ],
   "client": [
+    "CameraMixin",
     "ClientLevelDataMixin",
     "ConfigTileMixin",
     "EntityRendererMixin",
     "EntityRenderStateMixin",
+    "GuiMixin",
     "OptionsMixin"
   ],
   "injectors": {

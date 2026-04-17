@@ -8,5 +8,11 @@
   "feature.foxaddons.shamanTotemUtils.totemScale.description": "Totem size multiplier",
   "feature.foxaddons.shamanTotemUtils.overlay.totemTimer.name": "Totem Timer",
   "feature.foxaddons.debug.name": "Debug",
-  "feature.foxaddons.debug.description": "Dev and Debug utils"
+  "feature.foxaddons.debug.description": "Dev and Debug utils",
+  "feature.foxaddons.cameraTweaks.name": "Camera",
+  "feature.foxaddons.cameraTweaks.description": "",
+  "feature.foxaddons.cameraTweaks.noCameraClip.name": "Camera Clip",
+  "feature.foxaddons.cameraTweaks.noCameraClip.description": "Allows your camera to clip in walls",
+  "feature.foxaddons.cameraTweaks.renderCrosshair.name": "Render Crosshair in Third Person",
+  "feature.foxaddons.cameraTweaks.renderCrosshair.description": "Should crosshair be rendered in third person"
 }
