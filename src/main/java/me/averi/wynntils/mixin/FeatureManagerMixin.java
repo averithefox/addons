@@ -9,6 +9,7 @@ import com.wynntils.core.persisted.config.ConfigCategory;
 import me.averi.wynntils.features.CameraTweaks;
 import me.averi.wynntils.features.Debug;
 import me.averi.wynntils.features.ShamanTotemUtils;
+import me.averi.wynntils.features.SkinChanger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,6 +26,7 @@ public abstract class FeatureManagerMixin {
     registerFeature(ShamanTotemUtils.INSTANCE);
     registerFeature(Debug.INSTANCE);
     registerFeature(CameraTweaks.INSTANCE);
+    registerFeature(SkinChanger.INSTANCE);
   }
 
   @WrapWithCondition(method = "initializeFeature", at = @At(value = "INVOKE", target = "Lcom/wynntils/core/consumers/features/Feature;setCategory(Lcom/wynntils/core/persisted/config/Category;)V"))

@@ -11,6 +11,7 @@
     "TextureMixin",
     "WynntilsModMixin",
     "accessors.ConfigAccessor",
+    "accessors.GearTypeAccessor",
     "accessors.JsonTypeWrapperInvoker",
     "accessors.OverlayInvoker",
     "accessors.PersistedManagerInvoker"
@@ -22,6 +23,8 @@
     "EntityRendererMixin",
     "EntityRenderStateMixin",
     "GuiMixin",
+    "ItemInHandRendererMixin",
+    "ItemModelResolverMixin",
     "OptionsMixin"
   ],
   "injectors": {
