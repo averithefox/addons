@@ -1,0 +1,140 @@
+package me.averi.wynntils.screens
+
+import com.mojang.blaze3d.platform.cursor.CursorTypes
+import com.wynntils.core.consumers.screens.WynntilsScreen
+import com.wynntils.utils.MathUtils
+import com.wynntils.utils.mc.McUtils
+import com.wynntils.utils.render.RenderUtils
+import com.wynntils.utils.render.Texture
+import me.averi.wynntils.dx.ItemModelSetting
+import me.averi.wynntils.utils.*
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.network.chat.Component
+import kotlin.math.*
+import kotlin.properties.Delegates
+
+private const val SCROLL_FACTOR = 10f
+private const val CONTENT_AREA_WIDTH = 322
+private const val CONTENT_AREA_HEIGHT = 134
+private const val SCROLL_AREA_HEIGHT = 121
+
+private const val HOVER_SCALE = 2f
+private const val HOVER_ANIM_SECONDS = 0.12f
+
+class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModelSetting) :
+  WynntilsScreen(Component.literal("Item Model Selector")) {
+  private var offsetX by Delegates.notNull<Float>()
+  private var offsetY by Delegates.notNull<Float>()
+
+  private var isDraggingScroll = false
+  private var scrollY by Delegates.notNull<Float>()
+  private var scrollOffset = 0f
+
+  private var hoverAnim = FloatArray(0)
+
+  val padding = 4f
+
+  val maxCols = floor((CONTENT_AREA_WIDTH + padding) / (16 + padding))
+  val horizontalMargin = (CONTENT_AREA_WIDTH - maxCols * (16f + padding) + padding) / 2f
+  val verticalMargin = max(horizontalMargin, 8f)
+
+  val totalContentHeight =
+    ceil(setting.modelRange.toIntRange().count() / maxCols) * (16f + padding) - padding + verticalMargin * 2f
+  val maxScrollOffset = abs(CONTENT_AREA_HEIGHT - totalContentHeight)
+
+  override fun doInit() {
+    offsetX = (width - Texture.SECRETS_BACKGROUND.width()) / 2f
+    offsetY = (height - Texture.SECRETS_BACKGROUND.height()) / 2f
+    hoverAnim = FloatArray(setting.modelRange.toIntRange().count())
+  }
+
+  override fun onClose() {
+    McUtils.setScreen(previousScreen)
+  }
+
+  override fun doRender(ctx: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    RenderUtils.drawTexturedRect(ctx, Texture.SECRETS_BACKGROUND, offsetX, offsetY)
+
+    RenderUtils.enableScissor(ctx, offsetX.toInt() + 9, offsetY.toInt() + 8, CONTENT_AREA_WIDTH, CONTENT_AREA_HEIGHT)
+
+    val animStep = mc.deltaTracker.gameTimeDeltaTicks / (HOVER_ANIM_SECONDS * 20f)
+
+    forEachItemCell(mouseX.toDouble(), mouseY.toDouble()) { index, model, centerX, centerY, isMouseOver ->
+      val target = if (isMouseOver) 1f else 0f
+      if (index < hoverAnim.size) hoverAnim[index] = moveToward(hoverAnim[index], target, animStep)
+      val linear = if (index < hoverAnim.size) hoverAnim[index] else 0f
+      val eased = easeOutCirc(linear)
+      val scale = 1f + (HOVER_SCALE - 1f) * eased
+
+      ctx.renderItem(itemStackWithModel(model.toFloat()), centerX, centerY, scale)
+    }
+
+    RenderUtils.disableScissor(ctx)
+
+    renderScroll(ctx)
+
+    if (isDraggingScroll) {
+      ctx.requestCursor(CursorTypes.RESIZE_NS)
+    }
+  }
+
+  override fun mouseScrolled(mouseX: Double, mouseY: Double, deltaX: Double, deltaY: Double): Boolean {
+    scrollOffset = min(max(scrollOffset - deltaY.toFloat() * SCROLL_FACTOR, 0f), maxScrollOffset)
+    return true
+  }
+
+  override fun doMouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
+    if (event.isRight) return false
+    if (!isDraggingScroll && event.x >= offsetX + 336 && offsetX + 336 + Texture.SCROLL_BUTTON.width() >= event.x && event.y >= scrollY && scrollY + Texture.SCROLL_BUTTON.height() >= event.y) {
+      isDraggingScroll = true
+      return true
+    }
+    if (event.x >= offsetX + 9 && event.x < offsetX + 9 + CONTENT_AREA_WIDTH && event.y >= offsetY + 8 && event.y < offsetY + 8 + CONTENT_AREA_HEIGHT) {
+      forEachItemCell(event.x, event.y) { _, model, _, _, isMouseOver ->
+        if (!isMouseOver) return@forEachItemCell
+        setting.modelValue = model.toFloat()
+        return true
+      }
+    }
+    return false
+  }
+
+  override fun mouseReleased(event: MouseButtonEvent): Boolean {
+    isDraggingScroll = false
+    return false
+  }
+
+  override fun mouseDragged(event: MouseButtonEvent, dragX: Double, dragY: Double): Boolean {
+    if (isDraggingScroll) {
+      val scrollAreaStartY = offsetY + 7 + 17
+      val scrollAreaHeight = SCROLL_AREA_HEIGHT - Texture.SCROLL_BUTTON.height()
+      val newScrollOffset =
+        MathUtils.map(event.y.toFloat(), scrollAreaStartY, scrollAreaStartY + scrollAreaHeight, 0f, maxScrollOffset)
+      scrollOffset = min(max(newScrollOffset, 0f), maxScrollOffset)
+      return true
+    }
+    return false
+  }
+
+  private inline fun forEachItemCell(
+    mouseX: Double,
+    mouseY: Double,
+    action: (index: Int, model: Int, centerX: Float, centerY: Float, isMouseOver: Boolean) -> Unit
+  ) {
+    setting.modelRange.toIntRange().forEachIndexed { index, model ->
+      val col = index % maxCols
+      val row = floor(index / maxCols)
+      val centerX = offsetX + 9f + horizontalMargin + 16f / 2f + col * (16f + padding)
+      val centerY = offsetY + 8f - scrollOffset + verticalMargin + 16f / 2f + row * (16f + padding)
+      val isMouseOver = mouseX >= centerX - 8 && centerX + 8 >= mouseX && mouseY >= centerY - 8 && centerY + 8 >= mouseY
+      action(index, model, centerX, centerY, isMouseOver)
+    }
+  }
+
+  private fun renderScroll(ctx: GuiGraphics) {
+    scrollY = offsetY + 7 + MathUtils.map(scrollOffset, 0f, maxScrollOffset, 0f, 135f - Texture.SCROLL_BUTTON.height())
+    RenderUtils.drawTexturedRect(ctx, Texture.SCROLL_BUTTON, offsetX + 336, scrollY)
+  }
+}

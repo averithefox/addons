@@ -1,6 +1,7 @@
 package me.averi.wynntils.utils
 
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.world.item.ItemStack
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.max
@@ -91,4 +92,13 @@ fun GuiGraphics.drawCircle(cx: Float, cy: Float, radius: Float, color: Int, rati
       fill(x, y, x + 1, y + 1, color.withAlpha(coverage))
     }
   }
+}
+
+fun GuiGraphics.renderItem(itemStack: ItemStack, centerX: Float, centerY: Float, scale: Float) {
+  pose.pushMatrix()
+  pose.translate(centerX, centerY)
+  pose.scale(scale, scale)
+  pose.translate(-8f, -8f)
+  renderItem(itemStack, 0, 0)
+  pose.popMatrix()
 }

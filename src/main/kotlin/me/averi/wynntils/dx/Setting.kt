@@ -13,8 +13,8 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.javaType
 
-class Setting<T>(@get:JvmName($$"fox$getDefaultValue") val defaultValue: T) : Config<T>(defaultValue),
-  ReadWriteProperty<Configurable, T>, PropertyDelegateProvider<Configurable, ReadWriteProperty<Configurable, T>> {
+open class Setting<T>(val value: T) : Config<T>(value), ReadWriteProperty<Configurable, T>,
+  PropertyDelegateProvider<Configurable, ReadWriteProperty<Configurable, T>> {
   lateinit var owner: Configurable
   lateinit var property: KProperty<*>
 
@@ -61,7 +61,7 @@ class Setting<T>(@get:JvmName($$"fox$getDefaultValue") val defaultValue: T) : Co
 
   override fun isEnum(): Boolean = type is Class<*> && (type as Class<*>).isEnum
 
-  override fun getDefaultValue() = defaultValue
+  override fun getDefaultValue() = value
 
   fun getI18n(suffix: String): String = owner.getTranslation("$fieldName.$suffix")
 
