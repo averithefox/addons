@@ -68,7 +68,8 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
       val eased = easeOutCirc(linear)
       val scale = 1f + (HOVER_SCALE - 1f) * eased
 
-      ctx.renderItem(itemStackWithModel(model.toFloat()), centerX, centerY, scale)
+      if (setting.modelValue == model) ctx.drawCircle(centerX, centerY, 9f, 0x40_FFFFFF)
+      ctx.renderItem(itemStackWithModel(model), centerX, centerY, scale)
     }
 
     RenderUtils.disableScissor(ctx)
@@ -94,7 +95,7 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
     if (event.x >= offsetX + 9 && event.x < offsetX + 9 + CONTENT_AREA_WIDTH && event.y >= offsetY + 8 && event.y < offsetY + 8 + CONTENT_AREA_HEIGHT) {
       forEachItemCell(event.x, event.y) { _, model, _, _, isMouseOver ->
         if (!isMouseOver) return@forEachItemCell
-        setting.modelValue = model.toFloat()
+        setting.modelValue = if (setting.modelValue != model) model else null
         return true
       }
     }
@@ -121,7 +122,7 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
   private inline fun forEachItemCell(
     mouseX: Double,
     mouseY: Double,
-    action: (index: Int, model: Int, centerX: Float, centerY: Float, isMouseOver: Boolean) -> Unit
+    action: (index: Int, model: Float, centerX: Float, centerY: Float, isMouseOver: Boolean) -> Unit
   ) {
     setting.modelRange.toIntRange().forEachIndexed { index, model ->
       val col = index % maxCols
@@ -129,7 +130,7 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
       val centerX = offsetX + 9f + horizontalMargin + 16f / 2f + col * (16f + padding)
       val centerY = offsetY + 8f - scrollOffset + verticalMargin + 16f / 2f + row * (16f + padding)
       val isMouseOver = mouseX >= centerX - 8 && centerX + 8 >= mouseX && mouseY >= centerY - 8 && centerY + 8 >= mouseY
-      action(index, model, centerX, centerY, isMouseOver)
+      action(index, model.toFloat(), centerX, centerY, isMouseOver)
     }
   }
 
