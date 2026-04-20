@@ -15,3 +15,6 @@ fun moveToward(current: Float, target: Float, maxStep: Float): Float = when {
   current > target -> max(current - maxStep, target)
   else -> current
 }
+
+fun isInside(left: Number, top: Number, right: Number, bottom: Number, x: Number, y: Number) =
+  x.toDouble() in left.toDouble()..right.toDouble() && y.toDouble() in top.toDouble()..bottom.toDouble()

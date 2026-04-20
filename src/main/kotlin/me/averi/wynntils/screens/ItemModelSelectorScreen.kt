@@ -9,6 +9,7 @@ import com.wynntils.utils.render.Texture
 import me.averi.wynntils.dx.ItemModelSetting
 import me.averi.wynntils.utils.drawCircle
 import me.averi.wynntils.utils.easeOutCirc
+import me.averi.wynntils.utils.isInside
 import me.averi.wynntils.utils.itemStackWithModel
 import me.averi.wynntils.utils.mc
 import me.averi.wynntils.utils.moveToward
@@ -29,6 +30,7 @@ private const val SCROLL_FACTOR = 10f
 private const val CONTENT_AREA_WIDTH = 322
 private const val CONTENT_AREA_HEIGHT = 134
 private const val SCROLL_AREA_HEIGHT = 121
+private const val ITEM_MARGIN = 4f
 
 private const val HOVER_SCALE = 2f
 private const val HOVER_ANIM_SECONDS = 0.12f
@@ -38,26 +40,28 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
   private var offsetX by Delegates.notNull<Float>()
   private var offsetY by Delegates.notNull<Float>()
 
+  val contentAreaX
+    get() = offsetX + 9f
+  val contentAreaY
+    get() = offsetY + 8f
+
   private var isDraggingScroll = false
   private var scrollY by Delegates.notNull<Float>()
   private var scrollOffset = 0f
 
-  private var hoverAnim = FloatArray(0)
+  private var hoverAnim = FloatArray(setting.modelRange.toIntRange().count())
 
-  val padding = 4f
-
-  val maxCols = floor((CONTENT_AREA_WIDTH + padding) / (16 + padding))
-  val horizontalMargin = (CONTENT_AREA_WIDTH - maxCols * (16f + padding) + padding) / 2f
-  val verticalMargin = max(horizontalMargin, 8f)
+  val maxCols = floor((CONTENT_AREA_WIDTH + ITEM_MARGIN) / (16 + ITEM_MARGIN))
+  val horizontalPadding = (CONTENT_AREA_WIDTH - maxCols * (16f + ITEM_MARGIN) + ITEM_MARGIN) / 2f
+  val verticalPadding = max(horizontalPadding, 8f)
 
   val totalContentHeight =
-    ceil(setting.modelRange.toIntRange().count() / maxCols) * (16f + padding) - padding + verticalMargin * 2f
+    ceil(setting.modelRange.toIntRange().count() / maxCols) * (16f + ITEM_MARGIN) - ITEM_MARGIN + verticalPadding * 2f
   val maxScrollOffset = abs(CONTENT_AREA_HEIGHT - totalContentHeight)
 
   override fun doInit() {
     offsetX = (width - Texture.SECRETS_BACKGROUND.width()) / 2f
     offsetY = (height - Texture.SECRETS_BACKGROUND.height()) / 2f
-    hoverAnim = FloatArray(setting.modelRange.toIntRange().count())
   }
 
   override fun onClose() {
@@ -98,11 +102,19 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
 
   override fun doMouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
     if (event.isRight) return false
-    if (!isDraggingScroll && event.x >= offsetX + 336 && offsetX + 336 + Texture.SCROLL_BUTTON.width() >= event.x && event.y >= scrollY && scrollY + Texture.SCROLL_BUTTON.height() >= event.y) {
+    val isOverScroll = isInside(
+      offsetX + 336,
+      scrollY,
+      offsetX + 336 + Texture.SCROLL_BUTTON.width(),
+      scrollY + Texture.SCROLL_BUTTON.height(),
+      event.x,
+      event.y
+    )
+    if (!isDraggingScroll && isOverScroll) {
       isDraggingScroll = true
       return true
     }
-    if (event.x >= offsetX + 9 && event.x < offsetX + 9 + CONTENT_AREA_WIDTH && event.y >= offsetY + 8 && event.y < offsetY + 8 + CONTENT_AREA_HEIGHT) {
+    if (isInsideContentArea(event.x, event.y)) {
       forEachItemCell(event.x, event.y) { _, model, _, _, isMouseOver ->
         if (!isMouseOver) return@forEachItemCell
         setting.modelValue = if (setting.modelValue != model) model else null
@@ -137,9 +149,11 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
     setting.modelRange.toIntRange().forEachIndexed { index, model ->
       val col = index % maxCols
       val row = floor(index / maxCols)
-      val centerX = offsetX + 9f + horizontalMargin + 16f / 2f + col * (16f + padding)
-      val centerY = offsetY + 8f - scrollOffset + verticalMargin + 16f / 2f + row * (16f + padding)
-      val isMouseOver = mouseX >= centerX - 8 && centerX + 8 >= mouseX && mouseY >= centerY - 8 && centerY + 8 >= mouseY
+      val centerX = contentAreaX + horizontalPadding + 16f / 2f + col * (16f + ITEM_MARGIN)
+      val centerY = contentAreaY - scrollOffset + verticalPadding + 16f / 2f + row * (16f + ITEM_MARGIN)
+      val isMouseOver = isInsideContentArea(mouseX, mouseY) && isInside(
+        centerX - 8, centerY - 8, centerX + 8, centerY + 8, mouseX, mouseY
+      )
       action(index, model.toFloat(), centerX, centerY, isMouseOver)
     }
   }
@@ -148,4 +162,7 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
     scrollY = offsetY + 7 + MathUtils.map(scrollOffset, 0f, maxScrollOffset, 0f, 135f - Texture.SCROLL_BUTTON.height())
     RenderUtils.drawTexturedRect(ctx, Texture.SCROLL_BUTTON, offsetX + 336, scrollY)
   }
+
+  private fun isInsideContentArea(x: Number, y: Number) =
+    isInside(contentAreaX, contentAreaY, contentAreaX + CONTENT_AREA_WIDTH, contentAreaY + CONTENT_AREA_HEIGHT, x, y)
 }
