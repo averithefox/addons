@@ -1,8 +1,11 @@
 package me.averi.wynntils.dx
 
+import net.minecraft.world.entity.EquipmentSlot
 import kotlin.reflect.KProperty
 
-class ItemModelSetting(val modelRange: ClosedFloatingPointRange<Float>, value: Float? = null) : Setting<Float?>(value) {
+class ItemModelSetting(
+  val modelRange: ClosedFloatingPointRange<Float>, value: Float? = null, val itemSlot: EquipmentSlot? = null
+) : Setting<Float?>(value) {
   var modelOffset: Float?
     get() = get()
     set(value) = setValue(value)

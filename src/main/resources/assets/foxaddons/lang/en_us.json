@@ -21,5 +21,6 @@
   "feature.foxaddons.skinChanger.wandModel.name": "Wand Skin",
   "feature.foxaddons.skinChanger.daggerModel.name": "Dagger Skin",
   "feature.foxaddons.skinChanger.bowModel.name": "Bow Skin",
-  "feature.foxaddons.skinChanger.relikModel.name": "Relik Skin"
+  "feature.foxaddons.skinChanger.relikModel.name": "Relik Skin",
+  "feature.foxaddons.skinChanger.helmetModel.name": "Helmet Skin"
 }

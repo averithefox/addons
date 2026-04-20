@@ -7,23 +7,13 @@ import com.wynntils.utils.mc.McUtils
 import com.wynntils.utils.render.RenderUtils
 import com.wynntils.utils.render.Texture
 import me.averi.wynntils.dx.ItemModelSetting
-import me.averi.wynntils.utils.drawCircle
-import me.averi.wynntils.utils.easeOutCirc
-import me.averi.wynntils.utils.isInside
-import me.averi.wynntils.utils.itemStackWithModel
-import me.averi.wynntils.utils.mc
-import me.averi.wynntils.utils.moveToward
-import me.averi.wynntils.utils.renderItem
-import me.averi.wynntils.utils.toIntRange
+import me.averi.wynntils.utils.*
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 import kotlin.properties.Delegates
 
 private const val SCROLL_FACTOR = 10f
@@ -93,6 +83,19 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
     if (isDraggingScroll) {
       ctx.requestCursor(CursorTypes.RESIZE_NS)
     }
+
+    InventoryScreen.renderEntityInInventoryFollowsMouse(
+      ctx,
+      contentAreaX.toInt() - 90,
+      contentAreaY.toInt(),
+      contentAreaX.toInt(),
+      contentAreaY.toInt() + 100,
+      30,
+      0.0625f,
+      mouseX.toFloat(),
+      mouseY.toFloat(),
+      mc.player!!
+    )
   }
 
   override fun mouseScrolled(mouseX: Double, mouseY: Double, deltaX: Double, deltaY: Double): Boolean {
