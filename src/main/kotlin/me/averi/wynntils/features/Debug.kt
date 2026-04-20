@@ -2,9 +2,9 @@ package me.averi.wynntils.features
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.wynntils.core.consumers.features.ProfileDefault
+import me.averi.wynntils.dx.Feature
 import me.averi.wynntils.events.EntityRenderEvent
 import me.averi.wynntils.events.EventBus.subscribe
-import me.averi.wynntils.dx.Feature
 import me.averi.wynntils.utils.mc
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.SubmitNodeCollector
