@@ -17,7 +17,6 @@ val minecraftVersion: String by project
 val loaderVersion: String by project
 val fabricApiVersion: String by project
 val fabricKotlinVersion: String by project
-val irisVersion: String by project
 val wynntilsVersion: String by project
 
 base {
@@ -38,7 +37,6 @@ dependencies {
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
 
   modLocalRuntime("me.djtheredstoner:DevAuth-fabric:1.2.2")
-  modCompileOnly("maven.modrinth:iris:$irisVersion")
   modImplementation("maven.modrinth:wynntils:v$wynntilsVersion")
 }
 
