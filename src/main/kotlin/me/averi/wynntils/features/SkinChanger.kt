@@ -21,24 +21,32 @@ object SkinChanger : Feature(ProfileDefault.DISABLED) {
   val relikModel by ItemModelSetting(GearType.RELIK.modelRange, itemSlot = EquipmentSlot.MAINHAND)
   val helmetModel by ItemModelSetting(GearType.HELMET.modelRange, itemSlot = EquipmentSlot.HEAD)
 
+  private val mainHandItem = ItemStack(Items.POTION)
+  private val headItem = ItemStack(Items.POTION)
+
+  init {
+    mainHandItem.set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(mutableListOf(0f), listOf(), listOf(), listOf()))
+    headItem.set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(mutableListOf(0f), listOf(), listOf(), listOf()))
+  }
+
   fun apply(itemStack: ItemStack, owner: ItemOwner?): ItemStack {
     if (!isEnabled) return itemStack
     val localPlayer = mc.player ?: return itemStack
     val isHelmet = ItemStack.matches(itemStack, localPlayer.getItemBySlot(EquipmentSlot.HEAD))
     if (!ItemStack.matches(itemStack, localPlayer.mainHandItem) && !isHelmet) return itemStack
 
-    val model = when (itemStack.get(DataComponents.CUSTOM_MODEL_DATA)?.getFloat(0) ?: return itemStack) {
-      in GearType.SPEAR.modelRange -> spearModel
-      in GearType.WAND.modelRange -> wandModel
-      in GearType.DAGGER.modelRange -> daggerModel
-      in GearType.BOW.modelRange -> bowModel
-      in GearType.RELIK.modelRange -> relikModel
-      in GearType.HELMET.modelRange -> helmetModel
+    val (model, item) = when (itemStack.get(DataComponents.CUSTOM_MODEL_DATA)?.getFloat(0) ?: return itemStack) {
+      in GearType.SPEAR.modelRange -> spearModel to mainHandItem
+      in GearType.WAND.modelRange -> wandModel to mainHandItem
+      in GearType.DAGGER.modelRange -> daggerModel to mainHandItem
+      in GearType.BOW.modelRange -> bowModel to mainHandItem
+      in GearType.RELIK.modelRange -> relikModel to mainHandItem
+      in GearType.HELMET.modelRange -> helmetModel to headItem
       else -> return itemStack
-    } ?: return itemStack
+    }
+    if (model == null) return itemStack
 
-    val item = ItemStack(Items.POTION)
-    item.set(DataComponents.CUSTOM_MODEL_DATA, CustomModelData(listOf(model), listOf(), listOf(), listOf()))
+    item.get(DataComponents.CUSTOM_MODEL_DATA)?.floats[0] = model
     return item
   }
 }
