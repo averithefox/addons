@@ -37,6 +37,7 @@ open class Setting<T>(val value: T) : Config<T>(value), ReadWriteProperty<Config
     get() = property.returnType.isMarkedNullable
 
   override fun getJsonName(): String {
+    @Suppress("cast_never_succeeds")
     val persistedManager = Managers.Persisted as PersistedManagerInvoker
     return "${persistedManager.invokeGetPrefix(owner)}${owner.jsonName}.$fieldName"
   }

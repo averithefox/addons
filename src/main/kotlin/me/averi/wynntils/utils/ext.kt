@@ -8,6 +8,7 @@ import org.joml.Matrix3x2fStack
 
 val GearType.modelRange: ClosedFloatingPointRange<Float>
   get() {
+    @Suppress("cast_never_succeeds")
     val pair = Services.CustomModel.getRange((this@modelRange as GearTypeAccessor).modelKey).get()
     return pair.a..pair.b
   }
