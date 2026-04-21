@@ -42,7 +42,7 @@ public class TextureMixin {
 
   @Inject(method = "identifier", at = @At("HEAD"), cancellable = true)
   private void fox$identifier(CallbackInfoReturnable<Identifier> cir) {
-    if (((Texture) (Object) this) == FOX_ADDONS_CONFIG_ICON) {
+    if ((Object) this == FOX_ADDONS_CONFIG_ICON) {
       cir.setReturnValue(Identifier.fromNamespaceAndPath("foxaddons", "textures/icons/config_categories/fox_addons_config_icon.png"));
     }
   }

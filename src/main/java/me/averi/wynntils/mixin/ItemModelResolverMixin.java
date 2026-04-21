@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import me.averi.wynntils.features.SkinChanger;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.world.entity.ItemOwner;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
