@@ -37,7 +37,7 @@ dependencies {
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
 
   modLocalRuntime("me.djtheredstoner:DevAuth-fabric:1.2.2")
-  modImplementation("maven.modrinth:wynntils:v$wynntilsVersion")
+  modImplementation("maven.modrinth:wynntils:v$wynntilsVersion-fabric")
 }
 
 loom {
