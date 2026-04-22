@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin.accessors;
+package me.averi.wynntils.mixin.wynntils.accessors;
 
 import com.wynntils.core.persisted.config.Config;
 import org.spongepowered.asm.mixin.Mixin;

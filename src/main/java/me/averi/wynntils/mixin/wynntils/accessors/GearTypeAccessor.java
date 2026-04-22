@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin.accessors;
+package me.averi.wynntils.mixin.wynntils.accessors;
 
 import com.wynntils.models.gear.type.GearType;
 import org.jetbrains.annotations.Nullable;

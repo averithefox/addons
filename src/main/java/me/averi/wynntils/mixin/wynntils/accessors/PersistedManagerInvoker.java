@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin.accessors;
+package me.averi.wynntils.mixin.wynntils.accessors;
 
 import com.wynntils.core.persisted.PersistedManager;
 import com.wynntils.core.persisted.PersistedOwner;

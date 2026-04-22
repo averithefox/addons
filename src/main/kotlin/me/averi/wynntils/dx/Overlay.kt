@@ -5,7 +5,7 @@ import com.wynntils.core.consumers.overlays.OverlayPosition
 import com.wynntils.core.consumers.overlays.OverlaySize
 import com.wynntils.utils.render.type.HorizontalAlignment
 import com.wynntils.utils.render.type.VerticalAlignment
-import me.averi.wynntils.mixin.accessors.OverlayInvoker
+import me.averi.wynntils.mixin.wynntils.accessors.OverlayInvoker
 import net.minecraft.client.resources.language.I18n
 
 abstract class Overlay(

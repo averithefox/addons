@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin;
+package me.averi.wynntils.mixin.wynntils;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;

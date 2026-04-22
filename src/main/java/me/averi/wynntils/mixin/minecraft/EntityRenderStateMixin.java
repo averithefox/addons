@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin;
+package me.averi.wynntils.mixin.minecraft;
 
 import me.averi.wynntils.interfaces.EntityFieldAccessor;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;

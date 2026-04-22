@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin;
+package me.averi.wynntils.mixin.minecraft;
 
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;

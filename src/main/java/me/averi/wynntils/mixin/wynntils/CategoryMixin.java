@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin;
+package me.averi.wynntils.mixin.wynntils;
 
 import com.wynntils.core.persisted.config.Category;
 import com.wynntils.utils.render.Texture;

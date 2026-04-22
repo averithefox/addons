@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin;
+package me.averi.wynntils.mixin.minecraft;
 
 import me.averi.wynntils.features.CameraTweaks;
 import net.minecraft.client.Camera;

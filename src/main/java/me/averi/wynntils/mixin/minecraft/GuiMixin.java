@@ -1,4 +1,4 @@
-package me.averi.wynntils.mixin;
+package me.averi.wynntils.mixin.minecraft;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import me.averi.wynntils.features.CameraTweaks;

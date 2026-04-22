@@ -2,7 +2,7 @@ package me.averi.wynntils.utils
 
 import com.wynntils.core.components.Services
 import com.wynntils.models.gear.type.GearType
-import me.averi.wynntils.mixin.accessors.GearTypeAccessor
+import me.averi.wynntils.mixin.wynntils.accessors.GearTypeAccessor
 import net.minecraft.client.gui.GuiGraphics
 import org.joml.Matrix3x2fStack
 

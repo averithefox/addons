@@ -3,9 +3,9 @@ package me.averi.wynntils.dx
 import com.wynntils.core.WynntilsMod
 import com.wynntils.core.components.Managers
 import com.wynntils.core.persisted.config.Config
-import me.averi.wynntils.mixin.accessors.ConfigAccessor
-import me.averi.wynntils.mixin.accessors.JsonTypeWrapperInvoker
-import me.averi.wynntils.mixin.accessors.PersistedManagerInvoker
+import me.averi.wynntils.mixin.wynntils.accessors.ConfigAccessor
+import me.averi.wynntils.mixin.wynntils.accessors.JsonTypeWrapperInvoker
+import me.averi.wynntils.mixin.wynntils.accessors.PersistedManagerInvoker
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.properties.PropertyDelegateProvider
