@@ -7,7 +7,6 @@
     "ConfigManagerMixin",
     "FeatureManagerMixin",
     "MouseUtilsMixin",
-    "ShamanTotemModelMixin",
     "TextureMixin",
     "WynntilsModMixin",
     "accessors.ConfigAccessor",
