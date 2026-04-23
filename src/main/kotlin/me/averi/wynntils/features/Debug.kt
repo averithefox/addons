@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.state.CameraRenderState
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.item.Items
 
 object Debug : Feature(ProfileDefault.DISABLED) {
   init {
@@ -31,10 +32,21 @@ object Debug : Feature(ProfileDefault.DISABLED) {
     if (!isEnabled) return
     if (entity !is Display.ItemDisplay) return
 
-    val text = entity.itemStack.run { "${item}{${customModel}}" }
+    val models = entity.level().getEntitiesOfClass(Display.ItemDisplay::class.java, entity.boundingBox.inflate(.1))
+      .mapNotNull { it.itemStack.customModel?.toInt() }.sorted().distinct()
+    val (first, last) = models.first() to models.last()
+    val modelText = when {
+      first == last -> "$first"
+      last == first + models.size - 1 -> "$first..$last"
+      else -> models.joinToString(",")
+    }
+    val text = entity.itemStack.run {
+      val itemStr = if (item == Items.OAK_BOAT) "" else "${item.toString().replace(" minecraft :", "")} "
+      "$itemStr$modelText"
+    }
 
     poseStack.pushPose()
-    poseStack.translate(0f, 2f, 0f)
+    poseStack.translate(0f, mc.player!!.eyeHeight, 0f)
     poseStack.mulPose(cameraRenderState.orientation)
     poseStack.scale(0.015f, -0.015f, 0.015f)
 
