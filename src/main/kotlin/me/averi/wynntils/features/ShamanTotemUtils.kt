@@ -9,7 +9,8 @@ import me.averi.wynntils.dx.Setting
 import me.averi.wynntils.events.EntityRenderEvent
 import me.averi.wynntils.events.EventBus.subscribe
 import me.averi.wynntils.overlays.TotemTimer
-import net.minecraft.core.component.DataComponents
+import me.averi.wynntils.utils.customModel
+import me.averi.wynntils.utils.plus
 import net.minecraft.world.entity.Display.ItemDisplay
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.Items
@@ -33,10 +34,8 @@ object ShamanTotemUtils : Feature(ProfileDefault.ENABLED) {
     if (entity !is ItemDisplay) return
     val item = entity.itemStack
     if (!item.`is`(Items.OAK_BOAT)) return
-    val customModelData = item.get(DataComponents.CUSTOM_MODEL_DATA)
-    val model = customModelData?.getFloat(0) ?: return
-    if (model == SHAMAN_TOTEM_CUSTOM_MODEL_DATA || model == SHAMAN_TOTEM_CUSTOM_MODEL_DATA + 1) {
-      if (model == SHAMAN_TOTEM_CUSTOM_MODEL_DATA && changeModel) customModelData.floats[0] += 1
+    if (item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA || item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA + 1) {
+      if (item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA && changeModel) item.customModel += 1f
       matrices.translate(0.0, -(1f - totemScale).toDouble(), 0.0)
       matrices.scale(totemScale, totemScale, totemScale)
     }

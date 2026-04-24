@@ -5,15 +5,15 @@ import com.wynntils.core.consumers.features.ProfileDefault
 import me.averi.wynntils.dx.Feature
 import me.averi.wynntils.events.EntityRenderEvent
 import me.averi.wynntils.events.EventBus.subscribe
+import me.averi.wynntils.utils.customModel
 import me.averi.wynntils.utils.mc
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.SubmitNodeCollector
 import net.minecraft.client.renderer.state.CameraRenderState
-import net.minecraft.core.component.DataComponents
 import net.minecraft.network.chat.Component
-import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.item.Items
 
 object Debug : Feature(ProfileDefault.DISABLED) {
   init {
@@ -30,37 +30,38 @@ object Debug : Feature(ProfileDefault.DISABLED) {
     packedLight: Int
   ) {
     if (!isEnabled) return
-    var text = "${entity.type}"
-    if (entity is Display.ItemDisplay) {
-      val item = entity.itemStack
-      text += "\n${item.item}{${item.damageValue},${item.get(DataComponents.CUSTOM_MODEL_DATA)?.getFloat(0)}}"
+    if (entity !is Display.ItemDisplay) return
+
+    val models = entity.level().getEntitiesOfClass(Display.ItemDisplay::class.java, entity.boundingBox.inflate(.1))
+      .mapNotNull { it.itemStack.customModel?.toInt() }.sorted().distinct()
+    val (first, last) = models.first() to models.last()
+    val modelText = when {
+      first == last -> "$first"
+      last == first + models.size - 1 -> "$first..$last"
+      else -> models.joinToString(",")
+    }
+    val text = entity.itemStack.run {
+      val itemStr = if (item == Items.OAK_BOAT) "" else "${item.toString().replace(" minecraft :", "")} "
+      "$itemStr$modelText"
     }
 
-    val lines = text.split("\n")
-
     poseStack.pushPose()
-    poseStack.translate(0f, 2f, 0f)
+    poseStack.translate(0f, mc.player!!.eyeHeight, 0f)
     poseStack.mulPose(cameraRenderState.orientation)
     poseStack.scale(0.015f, -0.015f, 0.015f)
 
-    val k = (mc.options.getBackgroundOpacity(0.25f) * 255.0f).toInt() shl 24
-
-    lines.forEachIndexed { index, line ->
-      val charSequence: FormattedCharSequence = Component.literal(line).getVisualOrderText()
-
-      submitNodeCollector.submitText(
-        poseStack,
-        48f,
-        index * 10.0f,
-        charSequence,
-        false, // dropShadow
-        Font.DisplayMode.SEE_THROUGH,
-        packedLight, // light
-        -1, // color
-        k, // background color
-        0xff000000.toInt() // outline color
-      )
-    }
+    submitNodeCollector.submitText(
+      poseStack,
+      48f,
+      0f,
+      Component.literal(text).getVisualOrderText(),
+      false,
+      Font.DisplayMode.SEE_THROUGH,
+      packedLight,
+      -1,
+      (mc.options.getBackgroundOpacity(0.25f) * 255.0f).toInt() shl 24,
+      0xFF_000000.toInt()
+    )
 
     poseStack.popPose()
   }
