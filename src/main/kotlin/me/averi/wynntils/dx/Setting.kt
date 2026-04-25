@@ -15,8 +15,8 @@ import kotlin.reflect.jvm.javaType
 
 open class Setting<T>(val value: T) : Config<T>(value), ReadWriteProperty<Configurable, T>,
   PropertyDelegateProvider<Configurable, ReadWriteProperty<Configurable, T>> {
-  lateinit var owner: Configurable
-  lateinit var property: KProperty<*>
+  private lateinit var owner: Configurable
+  private lateinit var property: KProperty<*>
 
   override fun getValue(thisRef: Configurable, property: KProperty<*>): T = get()
 
@@ -64,7 +64,7 @@ open class Setting<T>(val value: T) : Config<T>(value), ReadWriteProperty<Config
 
   override fun getDefaultValue() = value
 
-  fun getI18n(suffix: String): String = owner.getTranslation("$fieldName.$suffix")
+  private fun getI18n(suffix: String): String = owner.getTranslation("$fieldName.$suffix")
 
   override fun getDisplayName() = getI18n("name")
   override fun getDescription() = getI18n("description")

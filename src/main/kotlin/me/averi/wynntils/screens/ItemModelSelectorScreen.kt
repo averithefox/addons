@@ -30,9 +30,9 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
   private var offsetX by Delegates.notNull<Float>()
   private var offsetY by Delegates.notNull<Float>()
 
-  val contentAreaX
+  private val contentAreaX
     get() = offsetX + 9f
-  val contentAreaY
+  private val contentAreaY
     get() = offsetY + 8f
 
   private var isDraggingScroll = false
@@ -41,13 +41,13 @@ class ItemModelSelectorScreen(val previousScreen: Screen, val setting: ItemModel
 
   private var hoverAnim = FloatArray(setting.modelRange.toIntRange().count())
 
-  val maxCols = floor((CONTENT_AREA_WIDTH + ITEM_MARGIN) / (16 + ITEM_MARGIN))
-  val horizontalPadding = (CONTENT_AREA_WIDTH - maxCols * (16f + ITEM_MARGIN) + ITEM_MARGIN) / 2f
-  val verticalPadding = max(horizontalPadding, 8f)
+  private val maxCols = floor((CONTENT_AREA_WIDTH + ITEM_MARGIN) / (16 + ITEM_MARGIN))
+  private val horizontalPadding = (CONTENT_AREA_WIDTH - maxCols * (16f + ITEM_MARGIN) + ITEM_MARGIN) / 2f
+  private val verticalPadding = max(horizontalPadding, 8f)
 
-  val totalContentHeight =
+  private val totalContentHeight =
     ceil(setting.modelRange.toIntRange().count() / maxCols) * (16f + ITEM_MARGIN) - ITEM_MARGIN + verticalPadding * 2f
-  val maxScrollOffset = abs(CONTENT_AREA_HEIGHT - totalContentHeight)
+  private val maxScrollOffset = abs(CONTENT_AREA_HEIGHT - totalContentHeight)
 
   override fun doInit() {
     offsetX = (width - Texture.SECRETS_BACKGROUND.width()) / 2f
