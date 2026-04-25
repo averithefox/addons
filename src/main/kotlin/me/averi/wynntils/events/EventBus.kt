@@ -17,6 +17,7 @@ object EventBus {
 
   inline fun <reified T : Event> subscribe(noinline listener: (T) -> Unit) = subscribe(T::class, listener)
 
+  @JvmStatic
   fun <T : Event> publish(event: T): Boolean {
     listeners[event::class]?.forEach { listener ->
       listener(event)

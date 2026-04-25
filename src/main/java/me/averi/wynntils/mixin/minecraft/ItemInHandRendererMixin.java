@@ -1,7 +1,8 @@
 package me.averi.wynntils.mixin.minecraft;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import me.averi.wynntils.features.SkinChanger;
+import me.averi.wynntils.events.EventBus;
+import me.averi.wynntils.events.ItemModelResolveEvent;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.item.ItemStack;
@@ -28,6 +29,8 @@ public class ItemInHandRendererMixin {
   @Redirect(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;mainHandItem:Lnet/minecraft/world/item/ItemStack;", opcode = Opcodes.PUTFIELD))
   private void fox$putMHI(ItemInHandRenderer instance, ItemStack value, @Local LocalPlayer localPlayer) {
     actualMainHandItem = value;
-    mainHandItem = SkinChanger.INSTANCE.apply(value, localPlayer);
+    var event = new ItemModelResolveEvent(value, localPlayer);
+    EventBus.publish(event);
+    mainHandItem = event.getReturnValue();
   }
 }

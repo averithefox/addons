@@ -28,7 +28,7 @@ public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> 
   private void render(S entityRenderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState, CallbackInfo ci) {
     var entity = ((EntityFieldAccessor) entityRenderState).fox$getEntity();
     var event = new EntityRenderEvent(entity, poseStack, submitNodeCollector, cameraRenderState, entityRenderState);
-    if (EventBus.INSTANCE.publish(event)) {
+    if (EventBus.publish(event)) {
       ci.cancel();
     }
   }

@@ -9,7 +9,7 @@ import net.neoforged.bus.api.Event
 import net.neoforged.bus.api.ICancellableEvent
 
 /**
- * Published from [net.minecraft.client.renderer.entity.EntityRenderer.submit] for
+ * Published from [net.minecraft.client.renderer.entity.EntityRenderer.submit]
  */
 data class EntityRenderEvent(
   val entity: Entity,

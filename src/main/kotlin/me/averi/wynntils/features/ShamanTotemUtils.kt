@@ -1,43 +1,59 @@
 package me.averi.wynntils.features
 
-import com.mojang.blaze3d.vertex.PoseStack
 import com.wynntils.core.consumers.features.ProfileDefault
 import com.wynntils.core.consumers.overlays.annotations.RegisterOverlay
 import me.averi.wynntils.SHAMAN_TOTEM_CUSTOM_MODEL_DATA
+import me.averi.wynntils.SKYSEER_TOTEM_CUSTOM_MODEL_DATA
 import me.averi.wynntils.dx.Feature
 import me.averi.wynntils.dx.Setting
 import me.averi.wynntils.events.EntityRenderEvent
 import me.averi.wynntils.events.EventBus.subscribe
+import me.averi.wynntils.events.ItemModelResolveEvent
 import me.averi.wynntils.overlays.TotemTimer
 import me.averi.wynntils.utils.customModel
-import me.averi.wynntils.utils.plus
 import net.minecraft.world.entity.Display.ItemDisplay
-import net.minecraft.world.entity.Entity
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object ShamanTotemUtils : Feature(ProfileDefault.ENABLED) {
-  val changeModel by Setting(false)
-  val totemScale by Setting(.4f)
+  private val totemScale by Setting(.4f)
+  private val totemModel by Setting(TotemModelType.DEFAULT)
 
   @RegisterOverlay
   @Suppress("unused")
   private val totemTimerOverlay = TotemTimer
 
+  private val totemItem = ItemStack(Items.OAK_BOAT)
+
   init {
-    subscribe<EntityRenderEvent> { event ->
-      onRenderEntity(event.entity, event.matrices)
+    subscribe(::onRenderEntity)
+    subscribe(::onItemModelResolve)
+  }
+
+  private fun onRenderEntity(e: EntityRenderEvent) {
+    if (!isEnabled || e.entity !is ItemDisplay) return
+    if (isTotem(e.entity.itemStack)) {
+      e.matrices.translate(0.0, -(1f - totemScale).toDouble(), 0.0)
+      e.matrices.scale(totemScale, totemScale, totemScale)
     }
   }
 
-  private fun onRenderEntity(entity: Entity, matrices: PoseStack) {
-    if (!isEnabled) return
-    if (entity !is ItemDisplay) return
-    val item = entity.itemStack
-    if (!item.`is`(Items.OAK_BOAT)) return
-    if (item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA || item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA + 1) {
-      if (item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA && changeModel) item.customModel += 1f
-      matrices.translate(0.0, -(1f - totemScale).toDouble(), 0.0)
-      matrices.scale(totemScale, totemScale, totemScale)
-    }
+  fun onItemModelResolve(e: ItemModelResolveEvent) {
+    if (!isEnabled || !isTotem(e.itemStack)) return
+    totemItem.customModel = totemModel.modelId ?: return
+    e.returnValue = totemItem
+  }
+
+  private fun isTotem(item: ItemStack) =
+    item.`is`(Items.OAK_BOAT) && (item.customModel == SHAMAN_TOTEM_CUSTOM_MODEL_DATA || item.customModel == SKYSEER_TOTEM_CUSTOM_MODEL_DATA)
+
+  private enum class TotemModelType(val modelId: Float?) {
+    DEFAULT(null),
+
+    @Suppress("unused")
+    SHAMAN(SHAMAN_TOTEM_CUSTOM_MODEL_DATA),
+
+    @Suppress("unused")
+    SKYSEER(SKYSEER_TOTEM_CUSTOM_MODEL_DATA)
   }
 }

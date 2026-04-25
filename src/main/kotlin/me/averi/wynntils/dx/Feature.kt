@@ -9,7 +9,7 @@ abstract class Feature(profileDefault: ProfileDefault) : Feature(profileDefault)
   override val settings: MutableList<Setting<*>> = ArrayList()
 
   val isEnabled: Boolean
-    @JvmName($$"fox$getIsEnabled") get() = userEnabled.get()
+    @JvmName($$"fox$isEnabled") get() = userEnabled.get()
 
   override fun getCategory(): Category {
     return Category.valueOf("FOX_ADDONS")
