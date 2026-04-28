@@ -3,6 +3,5 @@ package me.averi.wynntils
 import net.fabricmc.api.ClientModInitializer
 
 object FoxAddons : ClientModInitializer {
-  override fun onInitializeClient() {
-  }
+  override fun onInitializeClient() = Unit
 }

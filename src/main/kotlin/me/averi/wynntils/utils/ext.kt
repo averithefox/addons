@@ -1,5 +1,6 @@
 package me.averi.wynntils.utils
 
+import com.mojang.blaze3d.vertex.VertexConsumer
 import com.wynntils.core.components.Services
 import com.wynntils.models.gear.type.GearType
 import me.averi.wynntils.mixin.wynntils.accessors.GearTypeAccessor
@@ -7,12 +8,13 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomModelData
+import net.neoforged.bus.api.ICancellableEvent
 import org.joml.Matrix3x2fStack
+import java.awt.Color
 
 val GearType.modelRange: ClosedFloatingPointRange<Float>
   get() {
-    @Suppress("cast_never_succeeds")
-    this as GearTypeAccessor
+    @Suppress("cast_never_succeeds") this as GearTypeAccessor
     val pair = Services.CustomModel.getRange(this.skinModelKey ?: this.modelKey).get()
     return pair.a..pair.b
   }
@@ -38,4 +40,10 @@ var ItemStack.customModel
 operator fun Float?.plus(b: Float): Float? {
   if (this == null) return null
   return this + b
+}
+
+fun VertexConsumer.setColor(color: Color) = setColor(color.red, color.green, color.blue, color.alpha)
+
+fun ICancellableEvent.cancel() {
+  isCanceled = true
 }

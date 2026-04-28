@@ -5,6 +5,7 @@
   "client": [
     "minecraft.CameraMixin",
     "minecraft.ClientLevelDataMixin",
+    "minecraft.ClientPacketListenerMixin",
     "minecraft.EntityRendererMixin",
     "minecraft.EntityRenderStateMixin",
     "minecraft.GuiMixin",
