@@ -6,14 +6,17 @@ import com.wynntils.core.consumers.features.Feature;
 import com.wynntils.core.consumers.features.FeatureManager;
 import com.wynntils.core.persisted.config.Category;
 import com.wynntils.core.persisted.config.ConfigCategory;
+import com.wynntils.features.combat.QuickCastFeature;
 import me.averi.wynntils.features.CameraTweaks;
 import me.averi.wynntils.features.Debug;
+import me.averi.wynntils.features.QuickCast;
 import me.averi.wynntils.features.ShamanTotemUtils;
 import me.averi.wynntils.features.SkinChanger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = FeatureManager.class, remap = false)
@@ -27,6 +30,14 @@ public abstract class FeatureManagerMixin {
     registerFeature(Debug.INSTANCE);
     registerFeature(CameraTweaks.INSTANCE);
     registerFeature(SkinChanger.INSTANCE);
+  }
+
+  @ModifyArg(method = "init", at = @At(value = "INVOKE", target = "Lcom/wynntils/core/consumers/features/FeatureManager;registerFeature(Lcom/wynntils/core/consumers/features/Feature;)V"))
+  private Feature fox$replaceFeatures(Feature feature) {
+    if (feature instanceof QuickCastFeature) {
+      return QuickCast.INSTANCE;
+    }
+    return feature;
   }
 
   @WrapWithCondition(method = "initializeFeature", at = @At(value = "INVOKE", target = "Lcom/wynntils/core/consumers/features/Feature;setCategory(Lcom/wynntils/core/persisted/config/Category;)V"))
