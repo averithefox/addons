@@ -19,6 +19,7 @@
     "wynntils.EventBusMixin",
     "wynntils.FeatureManagerMixin",
     "wynntils.MouseUtilsMixin",
+    "wynntils.PacketDebuggerFeatureMixin",
     "wynntils.TextureMixin",
     "wynntils.WynntilsModMixin",
     "wynntils.accessors.ConfigAccessor",

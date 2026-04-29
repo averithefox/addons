@@ -23,6 +23,9 @@
   "feature.foxaddons.skinChanger.bowModel.name": "Bow Skin",
   "feature.foxaddons.skinChanger.relikModel.name": "Relik Skin",
   "feature.foxaddons.skinChanger.helmetModel.name": "Helmet Skin",
+
   "feature.wynntils.quickCast.swing.name": "Swing",
-  "feature.wynntils.quickCast.swing.description": "Should swing animation be played on left click inputs"
+  "feature.wynntils.quickCast.swing.description": "Should swing animation be played on left click inputs",
+  "feature.wynntils.packetDebugger.packetDirection.name": "Packet Direction",
+  "feature.wynntils.packetDebugger.packetDirection.description": "Which directions should packets going in be logged"
 }

@@ -7,11 +7,8 @@ import com.wynntils.core.consumers.features.FeatureManager;
 import com.wynntils.core.persisted.config.Category;
 import com.wynntils.core.persisted.config.ConfigCategory;
 import com.wynntils.features.combat.QuickCastFeature;
-import me.averi.wynntils.features.CameraTweaks;
-import me.averi.wynntils.features.Debug;
-import me.averi.wynntils.features.QuickCast;
-import me.averi.wynntils.features.ShamanTotemUtils;
-import me.averi.wynntils.features.SkinChanger;
+import com.wynntils.features.debug.PacketDebuggerFeature;
+import me.averi.wynntils.features.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,6 +33,8 @@ public abstract class FeatureManagerMixin {
   private Feature fox$replaceFeatures(Feature feature) {
     if (feature instanceof QuickCastFeature) {
       return QuickCast.INSTANCE;
+    } else if (feature instanceof PacketDebuggerFeature) {
+      return PacketDebugger.INSTANCE;
     }
     return feature;
   }
