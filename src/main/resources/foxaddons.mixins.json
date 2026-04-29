@@ -16,6 +16,7 @@
   "mixins": [
     "wynntils.CategoryMixin",
     "wynntils.ConfigManagerMixin",
+    "wynntils.EventBusMixin",
     "wynntils.FeatureManagerMixin",
     "wynntils.MouseUtilsMixin",
     "wynntils.TextureMixin",

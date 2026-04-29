@@ -28,10 +28,10 @@
   "accessWidener": "foxaddons.accesswidener",
   "depends": {
     "fabricloader": ">=${loaderVersion}",
-    "minecraft": "~${minecraftVersion}",
+    "minecraft": "${minecraftVersion}",
     "java": ">=21",
     "fabric-api": "*",
     "fabric-language-kotlin": "*",
-    "wynntils": "~${wynntilsVersion}"
+    "wynntils": "${wynntilsVersion}"
   }
 }

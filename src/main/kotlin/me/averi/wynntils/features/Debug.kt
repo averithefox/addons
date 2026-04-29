@@ -54,7 +54,7 @@ object Debug : Feature(ProfileDefault.DISABLED) {
       poseStack,
       48f,
       0f,
-      Component.literal(text).getVisualOrderText(),
+      Component.literal(text).visualOrderText,
       false,
       Font.DisplayMode.SEE_THROUGH,
       packedLight,
