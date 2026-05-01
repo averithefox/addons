@@ -14,7 +14,8 @@ import java.awt.Color
 
 val GearType.modelRange: ClosedFloatingPointRange<Float>
   get() {
-    @Suppress("cast_never_succeeds") this as GearTypeAccessor
+    @Suppress("cast_never_succeeds")
+    this as GearTypeAccessor
     val pair = Services.CustomModel.getRange(this.skinModelKey ?: this.modelKey).get()
     return pair.a..pair.b
   }
@@ -47,3 +48,5 @@ fun VertexConsumer.setColor(color: Color) = setColor(color.red, color.green, col
 fun ICancellableEvent.cancel() {
   isCanceled = true
 }
+
+val Double.f get() = toFloat()

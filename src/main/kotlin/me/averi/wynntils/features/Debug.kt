@@ -9,6 +9,8 @@ import me.averi.wynntils.events.EventBus.subscribe
 import me.averi.wynntils.utils.cancel
 import me.averi.wynntils.utils.customModel
 import me.averi.wynntils.utils.mc
+import me.averi.wynntils.utils.render.asRenderCtx
+import me.averi.wynntils.utils.render.renderFilledCircle
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents
 import net.minecraft.client.gui.Font
@@ -16,15 +18,16 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.world.entity.Display
-import net.minecraft.world.entity.Pose
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import net.minecraft.world.level.ClipContext
+import java.awt.Color
 
 object Debug : Feature(ProfileDefault.DISABLED) {
   init {
     subscribe(::onEntityRender)
     subscribe(::preEntityData)
-    WorldRenderEvents.AFTER_ENTITIES.register(::onWorldRender)
+    WorldRenderEvents.END_MAIN.register(::onWorldRender)
     subscribe(::onEntityShouldRender)
   }
 
@@ -67,25 +70,24 @@ object Debug : Feature(ProfileDefault.DISABLED) {
   }
 
   private fun onWorldRender(ctx: WorldRenderContext) {
-//    val color = Color(1f, 0f, 0f, .5f)
-//
-//    val playerPos = mc.player?.position() ?: return
-//
-//    val p1 = playerPos.toVector3f()
-//    val p2 = playerPos.add(2.0, 0.0, 2.0).toVector3f()
-//    val p3 = playerPos.add(-2.0, 0.0, 2.0).toVector3f()
-//
-//    ctx.asRenderCtx.withWorldTranslation { matrix ->
-//      val buffer = consumers.getBuffer(FILLED_THROUGH_WALLS)
-//
-//      buffer.addVertex(matrix, p1).setColor(color)
-//      buffer.addVertex(matrix, p3).setColor(color)
-//      buffer.addVertex(matrix, p2).setColor(color)
-//
-//      buffer.addVertex(matrix, p1).setColor(color)
-//      buffer.addVertex(matrix, p2).setColor(color)
-//      buffer.addVertex(matrix, p3).setColor(color)
-//    }
+    val maxHeight = 128.0
+
+    val tickDelta = mc.deltaTracker.getGameTimeDeltaPartialTick(false)
+    val player = mc.player ?: return
+    val playerPos = player.getPosition(tickDelta)
+
+//    ctx.asRenderCtx.renderFilledCircle(playerPos.add(.0, .02, .0), .5f, Color(0f, 1f, 0f, .5f), 64)
+    val hitResult = mc.level?.clip(
+      ClipContext(
+        playerPos.add(.0, 1.0, .0),
+        playerPos.subtract(.0, maxHeight, .0),
+        ClipContext.Block.COLLIDER,
+        ClipContext.Fluid.ANY,
+        player
+      )
+    ) ?: return
+
+    ctx.asRenderCtx.renderFilledCircle(hitResult.location.add(.0, .02, .0), .5f, Color(0f, 0f, 1f, .5f), 64)
   }
 
   private fun preEntityData(e: EntityDataEvent.Pre) {
